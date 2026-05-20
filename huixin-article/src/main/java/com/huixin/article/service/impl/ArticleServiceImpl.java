@@ -288,9 +288,13 @@ public class ArticleServiceImpl implements ArticleService {
             ResultVO<Map<String, Object>> result = userFeignClient.getUserPublicInfo(article.getAuthorId());
             if (result.getCode() == 200 && result.getData() != null) {
                 Map<String, Object> userData = result.getData();
-                authorName = String.valueOf(userData.getOrDefault("nickname",
-                        userData.getOrDefault("username", "")));
-                authorAvatar = String.valueOf(userData.getOrDefault("avatarUrl", ""));
+                // 安全获取：getOrDefault 在 key 存在但值为 null 时返回 null 而非默认值
+                Object nickname = userData.get("nickname");
+                Object username = userData.get("username");
+                authorName = nickname != null ? nickname.toString()
+                           : username != null ? username.toString() : "";
+                Object avatar = userData.get("avatarUrl");
+                authorAvatar = avatar != null ? avatar.toString() : "";
             }
         } catch (Exception e) {
             log.warn("[获取作者信息失败] authorId={}", article.getAuthorId());
@@ -319,20 +323,15 @@ public class ArticleServiceImpl implements ArticleService {
         try {
             ResultVO<Map<String, Object>> result = userFeignClient.getUserPublicInfo(article.getAuthorId());
             if (result.getCode() == 200 && result.getData() != null) {
-                authorName = String.valueOf(result.getData().getOrDefault("nickname",
-                        result.getData().getOrDefault("username", "")));
-                authorAvatar = String.valueOf(result.getData().getOrDefault("avatarUrl", ""));
+                Map<String, Object> userData = result.getData();
+                Object nickname = userData.get("nickname");
+                Object username = userData.get("username");
+                authorName = nickname != null ? nickname.toString()
+                           : username != null ? username.toString() : "";
+                Object avatar = userData.get("avatarUrl");
+                authorAvatar = avatar != null ? avatar.toString() : "";
             }
         } catch (Exception ignored) {}
 
         return ArticleListVO.builder()
                 .id(article.getId()).title(article.getTitle()).summary(article.getSummary())
-                .coverImageUrl(article.getCoverImageUrl())
-                .authorId(article.getAuthorId()).authorName(authorName).authorAvatar(authorAvatar)
-                .categoryName(categoryName).tags(Collections.emptyList())
-                .viewCount(article.getViewCount()).likeCount(article.getLikeCount()).commentCount(article.getCommentCount())
-                .publishTime(article.getPublishTime()).isTop(article.getIsTop())
-                .build();
-    }
-
-}
