@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: huixin-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: huixin-blog
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        namespace: huixin-blog
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+    gateway:
+      # 全局跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      # 路由配置
+      routes:
+        # 认证服务路由
+        - id: huixin-auth
+          uri: lb://huixin-auth
+          predicates:
+            - Path=/api/auth/**
+        # 用户服务路由
+        - id: huixin-user
+          uri: lb://huixin-user
+          predicates:
+            - Path=/api/user/**
+        # 文章服务路由
+        - id: huixin-article
+          uri: lb://huixin-article
+          predicates:
+            - Path=/api/article/**,/api/category/**,/api/tag/**
+        # 评论服务路由
+        - id: huixin-comment
+          uri: lb://huixin-comment
+          predicates:
+            - Path=/api/comment/**
+        # 搜索服务路由
+        - id: huixin-search
+          uri: lb://huixin-search
+          predicates:
+            - Path=/api/search/**
+        # 统计服务路由
+        - id: huixin-stats
+          uri: lb://huixin-stats
+          predicates:
+            - Path=/api/stats/**
+
+logging:
+  level:
+    com.huixin.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO

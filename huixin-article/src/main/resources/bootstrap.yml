@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: huixin-article
+  cloud:
+    nacos:
+      config:
+        server-addr: localhost:8848
+        namespace: huixin-blog
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+        shared-configs:
+          - data-id: common-config.yaml
+            group: DEFAULT_GROUP
+            refresh: true

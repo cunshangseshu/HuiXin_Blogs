@@ -26,3 +26,5 @@ dist/
 # Env
 .env
 .env.local
+.idea/
+*.doc
