@@ -1,0 +1,35 @@
+package com.huixin.article.feign;
+
+import com.huixin.common.vo.ResultVO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 用户服务Feign客户端
+ * <p>
+ * 用于获取文章作者信息。
+ * </p>
+ *
+ * @author Huixin Blog
+ */
+@FeignClient(name = "huixin-user", path = "/api/user")
+public interface UserFeignClient {
+
+    /**
+     * 获取用户公开信息
+     */
+    @GetMapping("/{id}")
+    ResultVO<Map<String, Object>> getUserPublicInfo(@PathVariable("id") Long id);
+
+    /**
+     * 批量获取用户信息
+     */
+    @GetMapping("/batch")
+    ResultVO<List<Map<String, Object>>> getUsersByIds(@RequestParam("ids") List<Long> ids);
+
+}
