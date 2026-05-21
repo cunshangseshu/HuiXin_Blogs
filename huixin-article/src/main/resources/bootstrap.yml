@@ -1,8 +1,14 @@
 spring:
   application:
     name: huixin-article
+  config:
+    import: nacos:huixin-blog-common.yaml?group=HUIXIN_GROUP
   cloud:
     nacos:
+      discovery:
+        server-addr: 192.168.238.134:8848
+        namespace: huixin-blog
+        group: HUIXIN_GROUP
       config:
         server-addr: 192.168.238.134:8848
         namespace: huixin-blog
