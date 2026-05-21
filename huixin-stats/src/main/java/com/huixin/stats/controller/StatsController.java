@@ -59,10 +59,4 @@ public class StatsController {
         return ResultVO.success(statsService.getHotArticles(limit));
     }
 
-    private static java.util.Map<String, Object> Map(String key, Object value) {
-        java.util.Map<String, Object> map = new java.util.HashMap<>();
-        map.put(key, value);
-        return map;
-    }
-
 }

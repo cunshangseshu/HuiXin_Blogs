@@ -4,6 +4,8 @@ import com.huixin.common.utils.RedisUtil;
 import com.huixin.stats.service.StatsService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -32,6 +34,9 @@ public class StatsServiceImpl implements StatsService {
 
     @Resource
     private RedisUtil redisUtil;
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     /** Redis Key 前缀 */
     private static final String VIEW_COUNT_KEY = "article:views:";
@@ -67,53 +72,50 @@ public class StatsServiceImpl implements StatsService {
     /* ==================== 点赞 ==================== */
 
     /**
-     * 点赞/取消点赞（toggle模式）
+     * 点赞/取消点赞（toggle模式，Lua 脚本原子化）
      * <p>
-     * 使用 Redis Set 存储每个文章的点赞用户集合：
-     * - SADD 添加用户 → 返回1表示首次点赞 → INCR点赞数
-     * - SREM 移除用户 → 返回1表示取消点赞 → DECR点赞数
-     * <p>
-     * 参考 Redis Skill：
-     * "SETNX for locks, SADD returns count of added elements"
-     * SADD 返回值天然支持幂等——重复点赞返回0。
+     * 使用 Redis Lua 脚本保证 SISMEMBER + SADD/SREM + INCRBY 的原子性，
+     * 避免并发竞态导致重复计数。
      * </p>
      */
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> toggleLike(Long articleId, Long userId) {
         String usersKey = LIKE_USERS_KEY + articleId;
         String countKey = LIKE_COUNT_KEY + articleId;
+        String member = userId.toString();
+        String articleIdStr = articleId.toString();
 
-        // 判断是否已点赞（O(1)复杂度）
-        boolean alreadyLiked = redisUtil.setIsMember(usersKey, userId.toString());
+        // Lua 脚本：原子化 toggle 点赞
+        String luaScript =
+            "local is_member = redis.call('SISMEMBER', KEYS[1], ARGV[1]) " +
+            "if is_member == 1 then " +
+            "  redis.call('SREM', KEYS[1], ARGV[1]) " +
+            "  local count = redis.call('INCRBY', KEYS[2], -1) " +
+            "  if count < 0 then redis.call('SET', KEYS[2], 0); count = 0 end " +
+            "  redis.call('ZINCRBY', KEYS[3], -ARGV[2], ARGV[3]) " +
+            "  return {0, count} " +  // 0 = 取消点赞
+            "else " +
+            "  redis.call('SADD', KEYS[1], ARGV[1]) " +
+            "  local count = redis.call('INCRBY', KEYS[2], 1) " +
+            "  redis.call('ZINCRBY', KEYS[3], ARGV[2], ARGV[3]) " +
+            "  return {1, count} " +  // 1 = 点赞
+            "end";
 
-        Map<String, Object> result = new HashMap<>();
+        DefaultRedisScript<List> script = new DefaultRedisScript<>(luaScript, List.class);
+        List<String> keys = Arrays.asList(usersKey, countKey, HOT_RANK_KEY);
+        List<Long> result = redisTemplate.execute(script, keys,
+                member, (long) LIKE_WEIGHT, articleIdStr);
 
-        if (alreadyLiked) {
-            // 取消点赞：SREM + DECR
-            redisUtil.setRemove(usersKey, userId.toString());
-            Long newCount = redisUtil.increment(countKey, -1);
-            // 确保不低于0
-            if (newCount < 0) {
-                redisUtil.set(countKey, "0");
-                newCount = 0L;
-            }
-            redisUtil.zSetIncrementScore(HOT_RANK_KEY, articleId.toString(), -LIKE_WEIGHT);
+        boolean liked = result != null && !result.isEmpty() && result.get(0) == 1L;
+        long newCount = result != null && result.size() > 1 ? result.get(1) : 0L;
 
-            result.put("liked", false);
-            result.put("likeCount", newCount);
-            log.debug("[取消点赞] articleId={}, userId={}, likeCount={}", articleId, userId, newCount);
-        } else {
-            // 点赞：SADD + INCR
-            redisUtil.setAdd(usersKey, userId.toString());
-            Long newCount = redisUtil.increment(countKey);
-            redisUtil.zSetIncrementScore(HOT_RANK_KEY, articleId.toString(), LIKE_WEIGHT);
-
-            result.put("liked", true);
-            result.put("likeCount", newCount);
-            log.debug("[点赞成功] articleId={}, userId={}, likeCount={}", articleId, userId, newCount);
-        }
-
-        return result;
+        Map<String, Object> map = new HashMap<>();
+        map.put("liked", liked);
+        map.put("likeCount", newCount);
+        log.debug("[{}] articleId={}, userId={}, likeCount={}",
+                liked ? "点赞成功" : "取消点赞", articleId, userId, newCount);
+        return map;
     }
 
     /* ==================== 统计查询 ==================== */

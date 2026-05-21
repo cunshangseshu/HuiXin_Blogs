@@ -26,6 +26,9 @@ public class SearchController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
+        if (keyword == null || keyword.isBlank()) {
+            return ResultVO.error(400, "请输入搜索关键词");
+        }
         return ResultVO.success(searchService.search(keyword, page, size));
     }
 
