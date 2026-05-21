@@ -20,6 +20,13 @@ public class RedisUtil {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    /**
+     * 获取底层RedisTemplate（供需要原生操作的场景使用）
+     */
+    public RedisTemplate<String, Object> getRedisTemplate() {
+        return redisTemplate;
+    }
+
     /* ==================== String操作 ==================== */
 
     /**
