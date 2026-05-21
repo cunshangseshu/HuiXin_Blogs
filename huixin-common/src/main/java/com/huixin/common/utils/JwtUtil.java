@@ -28,10 +28,28 @@ import java.util.Map;
 public class JwtUtil {
 
     /**
-     * 签名密钥（生产环境应从Nacos配置或环境变量获取）
+     * 签名密钥
+     * <p>
+     * 优先级：系统属性 jwt.secret > 环境变量 JWT_SECRET > 默认开发密钥。
+     * 生产环境必须通过环境变量或启动参数注入强随机密钥。
+     * </p>
+     * <p>生成强密钥示例：{@code openssl rand -base64 32}</p>
      */
-    private static final String SECRET_KEY = "huixin-blog-jwt-secret-key-2026-please-change-in-production";
-    private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    private static final String SECRET_KEY;
+    private static final SecretKey KEY;
+
+    static {
+        String configuredKey = System.getProperty("jwt.secret");
+        if (configuredKey == null || configuredKey.isBlank()) {
+            configuredKey = System.getenv("JWT_SECRET");
+        }
+        if (configuredKey == null || configuredKey.isBlank()) {
+            log.warn("[JWT] 未配置自定义密钥，使用默认开发密钥。生产环境请设置环境变量 JWT_SECRET 或系统属性 jwt.secret");
+            configuredKey = "huixin-blog-jwt-secret-key-2026-please-change-in-production";
+        }
+        SECRET_KEY = configuredKey;
+        KEY = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    }
 
     /**
      * Access Token 过期时间：2小时（毫秒）

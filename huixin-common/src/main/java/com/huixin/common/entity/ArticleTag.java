@@ -9,6 +9,13 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 文章-标签关联实体（多对多中间表）
+ * <p>
+ * 注意：该实体不继承BaseEntity。作为纯关联中间表，其行在标签解绑时物理删除，
+ * 无需逻辑删除（isDeleted）和时间戳自动填充。
+ * </p>
+ */
 @Data
 @TableName("article_tag")
 @Schema(description = "文章-标签关联")

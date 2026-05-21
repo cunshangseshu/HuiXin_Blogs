@@ -9,6 +9,13 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 点赞记录实体
+ * <p>
+ * 注意：该实体不继承BaseEntity。点赞是一种轻量级的 toggle 操作（点赞时 INSERT，取消时物理 DELETE），
+ * 无需逻辑删除和时间戳自动填充。点赞记录通过 Redis Set 实时管理，MySQL 仅用作异步同步备份。
+ * </p>
+ */
 @Data
 @TableName("like_record")
 @Schema(description = "点赞记录")
