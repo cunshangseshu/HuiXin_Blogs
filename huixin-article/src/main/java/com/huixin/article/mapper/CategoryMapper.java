@@ -17,7 +17,7 @@ public interface CategoryMapper extends BaseMapper<Category> {
     /**
      * 增加分类下文章数量
      */
-    @Update("UPDATE category SET article_count = article_count + #{count} WHERE id = #{categoryId}")
+    @Update("UPDATE category SET article_count = article_count + #{count} WHERE id = #{categoryId} AND article_count + #{count} >= 0")
     int incrementArticleCount(@Param("categoryId") Long categoryId, @Param("count") int count);
 
 }

@@ -116,6 +116,11 @@ public class ArticleServiceImpl implements ArticleService {
 
         // 分类变更处理
         if (!article.getCategoryId().equals(dto.getCategoryId())) {
+            // 验证新分类存在
+            Category newCategory = categoryMapper.selectById(dto.getCategoryId());
+            if (newCategory == null) {
+                throw new BusinessException(ResultCode.CATEGORY_NOT_FOUND);
+            }
             categoryMapper.incrementArticleCount(article.getCategoryId(), -1);
             categoryMapper.incrementArticleCount(dto.getCategoryId(), 1);
             article.setCategoryId(dto.getCategoryId());
@@ -156,12 +161,16 @@ public class ArticleServiceImpl implements ArticleService {
         // 逻辑删除
         articleMapper.deleteById(articleId);
 
-        // 更新分类和标签计数
+        // 更新分类和标签计数，并清理 article_tag 关联
         categoryMapper.incrementArticleCount(article.getCategoryId(), -1);
         List<ArticleTag> tags = articleTagMapper.selectList(
                 new LambdaQueryWrapper<ArticleTag>().eq(ArticleTag::getArticleId, articleId)
         );
         tags.forEach(t -> tagMapper.incrementArticleCount(t.getTagId(), -1));
+        // 物理删除 article_tag 关联记录，避免孤立数据
+        if (!tags.isEmpty()) {
+            articleTagMapper.delete(new LambdaQueryWrapper<ArticleTag>().eq(ArticleTag::getArticleId, articleId));
+        }
 
         log.info("[文章删除成功] articleId={}, authorId={}", articleId, authorId);
     }
@@ -218,13 +227,15 @@ public class ArticleServiceImpl implements ArticleService {
         Page<Article> page = new Page<>(queryDTO.getPage(), queryDTO.getSize());
         Page<Article> result = articleMapper.selectPage(page, wrapper);
 
-        // 转换为列表VO
-        List<ArticleListVO> list = result.getRecords().stream()
-                .map(this::buildArticleListVO)
-                .collect(Collectors.toList());
+        // 转换为列表VO（批量获取作者信息，避免 N+1）
+        List<ArticleListVO> list = buildArticleListVOs(result.getRecords());
 
-        PageVO<ArticleListVO> pageVO = PageVO.from(result);
+        PageVO<ArticleListVO> pageVO = new PageVO<>();
         pageVO.setRecords(list);
+        pageVO.setTotal(result.getTotal());
+        pageVO.setSize(result.getSize());
+        pageVO.setCurrent(result.getCurrent());
+        pageVO.setPages(result.getPages());
         return pageVO;
     }
 
@@ -232,18 +243,21 @@ public class ArticleServiceImpl implements ArticleService {
     public PageVO<ArticleListVO> listUserArticles(Long authorId, Integer page, Integer size) {
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<Article>()
                 .eq(Article::getAuthorId, authorId)
+                .eq(Article::getArticleStatus, 1) // 公开仅展示已发布文章
                 .eq(Article::getIsDeleted, 0)
                 .orderByDesc(Article::getPublishTime);
 
         Page<Article> mpPage = new Page<>(page, size);
         Page<Article> result = articleMapper.selectPage(mpPage, wrapper);
 
-        List<ArticleListVO> list = result.getRecords().stream()
-                .map(this::buildArticleListVO)
-                .collect(Collectors.toList());
+        List<ArticleListVO> list = buildArticleListVOs(result.getRecords());
 
-        PageVO<ArticleListVO> pageVO = PageVO.from(result);
+        PageVO<ArticleListVO> pageVO = new PageVO<>();
         pageVO.setRecords(list);
+        pageVO.setTotal(result.getTotal());
+        pageVO.setSize(result.getSize());
+        pageVO.setCurrent(result.getCurrent());
+        pageVO.setPages(result.getPages());
         return pageVO;
     }
 
@@ -312,18 +326,48 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     /**
-     * 构建文章列表VO（不含正文）
+     * 批量构建文章列表VO（一次查询作者信息，避免 N+1）
      */
-    private ArticleListVO buildArticleListVO(Article article) {
-        String categoryName = "";
-        Category category = categoryMapper.selectById(article.getCategoryId());
-        if (category != null) categoryName = category.getCategoryName();
+    private List<ArticleListVO> buildArticleListVOs(List<Article> articles) {
+        if (articles.isEmpty()) return Collections.emptyList();
 
-        String authorName = "", authorAvatar = "";
+        // 1. 收集所有作者 ID
+        Set<Long> authorIds = articles.stream()
+                .map(Article::getAuthorId)
+                .collect(Collectors.toSet());
+
+        // 2. 批量获取用户信息
+        Map<Long, Map<String, Object>> userMap = new HashMap<>();
         try {
-            ResultVO<Map<String, Object>> result = userFeignClient.getUserPublicInfo(article.getAuthorId());
+            ResultVO<List<Map<String, Object>>> result = userFeignClient.getUsersByIds(new ArrayList<>(authorIds));
             if (result.getCode() == 200 && result.getData() != null) {
-                Map<String, Object> userData = result.getData();
+                for (Map<String, Object> userData : result.getData()) {
+                    Object idObj = userData.get("id");
+                    if (idObj != null) {
+                        userMap.put(((Number) idObj).longValue(), userData);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[批量获取作者信息失败] count={}", authorIds.size());
+        }
+
+        // 3. 收集所有分类 ID 并批量查询
+        Set<Long> categoryIds = articles.stream()
+                .map(Article::getCategoryId)
+                .collect(Collectors.toSet());
+        Map<Long, String> categoryNameMap = new HashMap<>();
+        for (Long cid : categoryIds) {
+            Category cat = categoryMapper.selectById(cid);
+            if (cat != null) categoryNameMap.put(cid, cat.getCategoryName());
+        }
+
+        // 4. 构建 VO
+        return articles.stream().map(article -> {
+            Map<String, Object> userData = userMap.get(article.getAuthorId());
+            String authorName = "";
+            String authorAvatar = "";
+            if (userData != null) {
                 Object nickname = userData.get("nickname");
                 Object username = userData.get("username");
                 authorName = nickname != null ? nickname.toString()
@@ -331,7 +375,23 @@ public class ArticleServiceImpl implements ArticleService {
                 Object avatar = userData.get("avatarUrl");
                 authorAvatar = avatar != null ? avatar.toString() : "";
             }
-        } catch (Exception ignored) {}
 
-        return ArticleListVO.builder()
-                .id(article.getId()).title(article.getTitle()).summary(article.getSummary())
+            return ArticleListVO.builder()
+                    .id(article.getId())
+                    .title(article.getTitle())
+                    .summary(article.getSummary())
+                    .coverImageUrl(article.getCoverImageUrl())
+                    .authorId(article.getAuthorId())
+                    .authorName(authorName)
+                    .authorAvatar(authorAvatar)
+                    .categoryName(categoryNameMap.getOrDefault(article.getCategoryId(), ""))
+                    .tags(Collections.emptyList()) // 列表视图暂不加载标签
+                    .viewCount(article.getViewCount())
+                    .likeCount(article.getLikeCount())
+                    .commentCount(article.getCommentCount())
+                    .publishTime(article.getPublishTime())
+                    .isTop(article.getIsTop())
+                    .build();
+        }).collect(Collectors.toList());
+    }
+}

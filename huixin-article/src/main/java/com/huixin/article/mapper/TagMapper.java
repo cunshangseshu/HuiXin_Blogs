@@ -17,7 +17,7 @@ public interface TagMapper extends BaseMapper<Tag> {
     /**
      * 增加标签下文章数量
      */
-    @Update("UPDATE tag SET article_count = article_count + #{count} WHERE id = #{tagId}")
+    @Update("UPDATE tag SET article_count = article_count + #{count} WHERE id = #{tagId} AND article_count + #{count} >= 0")
     int incrementArticleCount(@Param("tagId") Long tagId, @Param("count") int count);
 
 }
