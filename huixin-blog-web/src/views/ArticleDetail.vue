@@ -47,6 +47,7 @@ const route = useRoute()
 const store = useUserStore()
 const article = ref(null); const comments = ref([])
 const liked = ref(false); const likeCount = ref(0)
+const likeLoading = ref(false)
 const loading = ref(true)
 function formatTime(t) { if (!t) return ''; return new Date(t).toLocaleString('zh-CN') }
 
@@ -75,10 +76,13 @@ async function loadComments() {
 }
 async function toggleLike() {
   if (!store.isLoggedIn) return alert('请先登录')
+  if (likeLoading.value) return
+  likeLoading.value = true
   try {
     const res = await statsApi.toggleLike(Number(route.params.id))
     if (res.code === 200) { liked.value = res.data.liked; likeCount.value = res.data.likeCount }
   } catch (e) { alert('操作失败') }
+  finally { likeLoading.value = false }
 }
 async function deleteComment(id) {
   if (!confirm('确定删除？')) return

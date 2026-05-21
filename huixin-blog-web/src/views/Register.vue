@@ -15,7 +15,12 @@
           </div>
           <div class="mb-3">
             <label class="form-label">密码</label>
-            <input v-model="form.password" type="password" class="form-control" required minlength="8" placeholder="8-20位，需含字母和数字">
+            <input v-model="form.password" type="password" class="form-control" required minlength="8" maxlength="20" placeholder="8-20位，需含字母和数字">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">确认密码</label>
+            <input v-model="form.confirmPassword" type="password" class="form-control" required placeholder="请再次输入密码">
+            <small v-if="form.confirmPassword && form.password !== form.confirmPassword" class="text-danger">两次密码不一致</small>
           </div>
           <button type="submit" class="btn btn-primary w-100" :disabled="loading">
             {{ loading ? '注册中...' : '注册' }}
@@ -34,10 +39,13 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/auth'
 const router = useRouter()
-const form = reactive({ username: '', email: '', password: '' })
+const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
 const loading = ref(false); const error = ref('')
 async function handleRegister() {
   loading.value = true; error.value = ''
+  // 客户端校验
+  if (form.password !== form.confirmPassword) { error.value = '两次密码不一致'; loading.value = false; return }
+  if (!/^(?=.*[a-zA-Z])(?=.*\d).+$/.test(form.password)) { error.value = '密码必须包含字母和数字'; loading.value = false; return }
   try {
     const res = await authApi.register({ ...form })
     if (res.code === 200) {

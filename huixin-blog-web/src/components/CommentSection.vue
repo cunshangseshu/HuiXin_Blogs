@@ -53,13 +53,18 @@ const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="ht
 const newComment = ref('')
 const replyingTo = ref(null)
 const replyContent = ref('')
+const submitting = ref(false)
 function formatTime(t) { if (!t) return ''; return new Date(t).toLocaleDateString('zh-CN') }
 async function submitComment() {
-  if (!newComment.value.trim()) return
+  if (!newComment.value.trim() || submitting.value) return
+  submitting.value = true
   try { await commentApi.create({ articleId: props.articleId, content: newComment.value }); newComment.value = ''; emit('refresh') } catch (e) { alert(e.message || '评论失败') }
+  finally { submitting.value = false }
 }
 async function submitReply(parentId, replyToUserId) {
-  if (!replyContent.value.trim()) return
+  if (!replyContent.value.trim() || submitting.value) return
+  submitting.value = true
   try { await commentApi.create({ articleId: props.articleId, content: replyContent.value, parentId, replyToUserId }); replyingTo.value = null; replyContent.value = ''; emit('refresh') } catch (e) { alert(e.message || '回复失败') }
+  finally { submitting.value = false }
 }
 </script>

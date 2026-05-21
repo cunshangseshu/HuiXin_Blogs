@@ -53,8 +53,10 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { articleApi, categoryApi, tagApi } from '@/api/article'
+import { useUserStore } from '@/store/user'
 
 const route = useRoute(); const router = useRouter()
+const store = useUserStore()
 const isEdit = computed(() => !!route.params.id)
 const form = reactive({ title: '', categoryId: '', content: '', summary: '', coverImageUrl: '' })
 const categories = ref([]); const allTags = ref([]); const selectedTags = ref([])
@@ -86,6 +88,12 @@ onMounted(async () => {
       const r = await articleApi.getDetail(Number(route.params.id))
       if (r.code === 200) {
         const a = r.data
+        // 前端所有权检查：非作者无权编辑
+        if (a.authorId !== store.user?.id) {
+          alert('无权编辑此文章')
+          router.push('/')
+          return
+        }
         Object.assign(form, { title: a.title, categoryId: a.categoryId, content: a.content, summary: a.summary || '', coverImageUrl: a.coverImageUrl || '' })
         if (a.tags) selectedTags.value = a.tags
       }

@@ -11,6 +11,7 @@
           </span>
         </div>
       </div>
+      <div v-else-if="!loading" class="text-center py-5 text-muted">用户不存在</div>
       <h6 class="mb-2">发布的文章</h6>
       <ArticleCard v-for="a in articles" :key="a.id" :article="a" />
       <Pagination v-if="pages > 1" :current="page" :pages="pages" @change="goPage" />
@@ -27,7 +28,7 @@ import ArticleCard from '@/components/ArticleCard.vue'
 import Pagination from '@/components/Pagination.vue'
 const route = useRoute()
 const user = ref(null); const articles = ref([])
-const page = ref(1); const pages = ref(1)
+const page = ref(1); const pages = ref(1); const loading = ref(true)
 const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72"><circle cx="36" cy="36" r="36" fill="#8B8682"/></svg>')
 async function load(p = 1) {
   const uid = Number(route.params.id)
@@ -36,6 +37,7 @@ async function load(p = 1) {
     const r = await articleApi.listByUser(uid, p)
     if (r.code === 200 && r.data) { articles.value = r.data.records || []; pages.value = r.data.pages || 1 }
   } catch (e) {}
+  loading.value = false
 }
 function goPage(p) { load(p) }
 onMounted(() => load())

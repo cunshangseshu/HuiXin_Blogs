@@ -7,6 +7,7 @@
     <!-- 中间：信息流 -->
     <div class="col-lg-7">
       <div v-if="loading" class="text-center py-5 text-muted">加载中...</div>
+      <div v-else-if="!articles.length" class="text-center py-5 text-muted">暂无文章</div>
       <template v-else>
         <ArticleCard v-for="a in articles" :key="a.id" :article="a" />
         <Pagination v-if="pages > 1" :current="page" :pages="pages" @change="goPage" />
@@ -39,6 +40,7 @@ async function loadArticles(p = 1) {
   try {
     const params = { page: p, size: 10 }
     if (route.name === 'Category' && route.params.id) params.categoryId = route.params.id
+    if (route.query.tagId) params.tagId = route.query.tagId
     const res = await articleApi.list(params)
     if (res.code === 200 && res.data) {
       articles.value = res.data.records || []
@@ -52,4 +54,5 @@ function goPage(p) { loadArticles(p); window.scrollTo({ top: 0, behavior: 'smoot
 
 onMounted(() => loadArticles())
 watch(() => route.params.id, () => loadArticles())
+watch(() => route.query.tagId, () => loadArticles())
 </script>

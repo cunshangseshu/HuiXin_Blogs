@@ -45,9 +45,8 @@ async function handleLogin() {
     if (res.code === 200 && res.data) {
       localStorage.setItem('accessToken', res.data.accessToken)
       localStorage.setItem('refreshToken', res.data.refreshToken)
-      const userId = JSON.parse(atob(res.data.accessToken.split('.')[1])).userId
-      localStorage.setItem('userId', userId)
-      store.setUser({ id: userId })
+      // 调用后端接口获取已验证的用户信息（替代不安全的客户端 JWT 解码）
+      await store.fetchUserInfo()
       router.push(route.query.redirect || '/')
     } else { error.value = res.message || '登录失败' }
   } catch (e) { error.value = e.message || '网络错误' }

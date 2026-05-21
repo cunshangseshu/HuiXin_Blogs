@@ -62,12 +62,12 @@ function doSearch() {
 
 async function logout() {
   const userId = store.user?.id
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  store.clearUser()
   if (userId) {
     try { await import('@/api/auth').then(m => m.authApi.logout(userId)) } catch (e) {}
   }
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
+  store.clearUser()
   router.push('/')
 }
 </script>
