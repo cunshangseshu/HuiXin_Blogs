@@ -21,10 +21,6 @@ import java.util.stream.Collectors;
 
 /**
  * 评论服务实现类
- * <p>
- * 支持一级评论和二级回复（嵌套一层）。
- * 评论树结构：一级评论 → 其下挂载所有二级回复。
- * </p>
  *
  * @author Huixin Blog
  */
@@ -42,18 +38,28 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CommentVO createComment(Long userId, CommentCreateDTO dto) {
-        // 1. 验证文章存在
+        // 1. 验证文章存在（轻量级检查）
         try {
-            articleFeignClient.getArticleDetail(dto.getArticleId());
+            ResultVO<Boolean> exists = articleFeignClient.checkArticleExists(dto.getArticleId());
+            if (exists == null || exists.getData() == null || !exists.getData()) {
+                throw new BusinessException(ResultCode.ARTICLE_NOT_FOUND);
+            }
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
+            log.warn("[验证文章存在性失败] articleId={}, error={}", dto.getArticleId(), e.getMessage());
             throw new BusinessException(ResultCode.ARTICLE_NOT_FOUND);
         }
 
-        // 2. 如果是回复，验证父评论存在
+        // 2. 如果是回复，验证父评论存在且属于同一文章
         if (dto.getParentId() != null) {
             Comment parent = commentMapper.selectById(dto.getParentId());
             if (parent == null) {
                 throw new BusinessException(ResultCode.COMMENT_NOT_FOUND);
+            }
+            // 父评论必须属于同一文章，防止跨文章回复
+            if (!parent.getArticleId().equals(dto.getArticleId())) {
+                throw new BusinessException(ResultCode.BAD_REQUEST, "回复的评论不属于该文章");
             }
         }
 
@@ -67,9 +73,16 @@ public class CommentServiceImpl implements CommentService {
 
         commentMapper.insert(comment);
 
+        // 4. 更新文章评论计数
+        try {
+            articleFeignClient.incrementCommentCount(dto.getArticleId(), 1);
+        } catch (Exception e) {
+            log.warn("[更新文章评论计数失败] articleId={}", dto.getArticleId());
+        }
+
         log.info("[评论发表] commentId={}, articleId={}, userId={}", comment.getId(), dto.getArticleId(), userId);
 
-        // 4. 返回构建好的VO
+        // 5. 返回构建好的VO
         return buildCommentVO(comment);
     }
 
@@ -81,13 +94,46 @@ public class CommentServiceImpl implements CommentService {
             throw new BusinessException(ResultCode.COMMENT_NOT_FOUND);
         }
 
-        // 权限判断：评论者本人可以删除
-        if (!comment.getUserId().equals(userId)) {
+        // 权限判断：评论者本人 或 文章作者 可以删除
+        boolean isCommentAuthor = comment.getUserId().equals(userId);
+        boolean isArticleAuthor = false;
+        if (!isCommentAuthor) {
+            try {
+                ResultVO<Map<String, Object>> articleBasic = articleFeignClient.getArticleBasic(comment.getArticleId());
+                if (articleBasic.getCode() == 200 && articleBasic.getData() != null) {
+                    Object authorIdObj = articleBasic.getData().get("authorId");
+                    if (authorIdObj != null) {
+                        isArticleAuthor = ((Number) authorIdObj).longValue() == userId.longValue();
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("[获取文章作者信息失败] articleId={}", comment.getArticleId());
+            }
+        }
+        if (!isCommentAuthor && !isArticleAuthor) {
             throw new BusinessException(ResultCode.FORBIDDEN);
         }
 
+        // 级联删除子回复（避免孤立数据）
+        List<Comment> childReplies = commentMapper.selectList(
+                new LambdaQueryWrapper<Comment>().eq(Comment::getParentId, commentId)
+        );
+        for (Comment child : childReplies) {
+            commentMapper.deleteById(child.getId());
+        }
+
+        // 删除评论本身
         commentMapper.deleteById(commentId);
-        log.info("[评论删除] commentId={}, userId={}", commentId, userId);
+
+        // 更新文章评论计数
+        try {
+            int delta = -1 - childReplies.size(); // 父评论 + 子回复
+            articleFeignClient.incrementCommentCount(comment.getArticleId(), delta);
+        } catch (Exception e) {
+            log.warn("[更新文章评论计数失败] articleId={}", comment.getArticleId());
+        }
+
+        log.info("[评论删除] commentId={}, userId={}, childReplies={}", commentId, userId, childReplies.size());
     }
 
     @Override
@@ -103,18 +149,29 @@ public class CommentServiceImpl implements CommentService {
             return Collections.emptyList();
         }
 
-        // 收集所有评论者ID，批量获取用户信息（简化：逐条查询）
-        Set<Long> userIds = allComments.stream()
-                .map(Comment::getUserId)
-                .collect(Collectors.toSet());
+        // 收集所有涉及的用户ID，批量获取用户信息（避免 N+1）
+        Set<Long> userIds = new HashSet<>();
+        for (Comment c : allComments) {
+            userIds.add(c.getUserId());
+            if (c.getReplyToUserId() != null) {
+                userIds.add(c.getReplyToUserId());
+            }
+        }
         Map<Long, Map<String, Object>> userCache = new HashMap<>();
-        for (Long uid : userIds) {
+        if (!userIds.isEmpty()) {
             try {
-                ResultVO<Map<String, Object>> result = userFeignClient.getUserPublicInfo(uid);
+                ResultVO<List<Map<String, Object>>> result = userFeignClient.getUsersByIds(new ArrayList<>(userIds));
                 if (result.getCode() == 200 && result.getData() != null) {
-                    userCache.put(uid, result.getData());
+                    for (Map<String, Object> userData : result.getData()) {
+                        Object idObj = userData.get("id");
+                        if (idObj != null) {
+                            userCache.put(((Number) idObj).longValue(), userData);
+                        }
+                    }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.warn("[批量获取用户信息失败] count={}", userIds.size());
+            }
         }
 
         // 分离一级评论和二级回复
@@ -145,8 +202,12 @@ public class CommentServiceImpl implements CommentService {
         String replyToUsername = null;
         if (comment.getReplyToUserId() != null) {
             Map<String, Object> replyUser = getUserData(comment.getReplyToUserId());
-            replyToUsername = replyUser != null ? String.valueOf(replyUser.getOrDefault("nickname",
-                    replyUser.getOrDefault("username", ""))) : null;
+            if (replyUser != null) {
+                Object nick = replyUser.get("nickname");
+                Object uname = replyUser.get("username");
+                replyToUsername = nick != null ? nick.toString()
+                                : uname != null ? uname.toString() : null;
+            }
         }
         return CommentVO.builder()
                 .id(comment.getId()).articleId(comment.getArticleId())
@@ -169,8 +230,12 @@ public class CommentServiceImpl implements CommentService {
                     String rtn = null;
                     if (r.getReplyToUserId() != null) {
                         Map<String, Object> rtu = userCache.get(r.getReplyToUserId());
-                        rtn = rtu != null ? String.valueOf(rtu.getOrDefault("nickname",
-                                rtu.getOrDefault("username", ""))) : null;
+                        if (rtu != null) {
+                            Object nick = rtu.get("nickname");
+                            Object uname = rtu.get("username");
+                            rtn = nick != null ? nick.toString()
+                                : uname != null ? uname.toString() : null;
+                        }
                     }
                     return CommentVO.builder()
                             .id(r.getId()).articleId(r.getArticleId()).userId(r.getUserId())
