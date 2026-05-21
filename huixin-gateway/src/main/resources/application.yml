@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  main:
+    web-application-type: reactive  # Gateway 必须用 reactive，与 common 模块的 spring-boot-starter-web 兼容
   application:
     name: huixin-gateway
   cloud:
