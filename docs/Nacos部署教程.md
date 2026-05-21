@@ -84,7 +84,7 @@ http://192.168.238.134:8848/nacos
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/huixin_blog?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+    url: jdbc:mysql://localhost:3306/huixin_blog?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
