@@ -4,12 +4,12 @@ spring:
   cloud:
     nacos:
       config:
-        server-addr: localhost:8848
+        server-addr: 192.168.238.134:8848
         namespace: huixin-blog
-        group: DEFAULT_GROUP
+        group: HUIXIN_GROUP
         file-extension: yaml
         refresh-enabled: true
         shared-configs:
-          - data-id: common-config.yaml
-            group: DEFAULT_GROUP
+          - data-id: huixin-blog-common.yaml
+            group: HUIXIN_GROUP
             refresh: true
