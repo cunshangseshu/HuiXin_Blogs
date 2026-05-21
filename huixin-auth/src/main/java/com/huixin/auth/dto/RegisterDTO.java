@@ -29,7 +29,7 @@ public class RegisterDTO {
      */
     @NotBlank(message = "密码不能为空")
     @Size(min = 8, max = 20, message = "密码长度需在8-20位之间")
-    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).+$", message = "密码必须包含字母和数字")
+    @Pattern(regexp = "^(?=\\S+$)(?=.*[a-zA-Z])(?=.*\\d).+$", message = "密码必须包含字母和数字，且不能包含空格")
     @Schema(description = "密码", example = "abc12345")
     private String password;
 

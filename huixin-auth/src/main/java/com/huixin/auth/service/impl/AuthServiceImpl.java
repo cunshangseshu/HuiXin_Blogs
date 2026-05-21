@@ -2,6 +2,7 @@ package com.huixin.auth.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.huixin.auth.dto.LoginDTO;
 import com.huixin.auth.dto.RegisterDTO;
 import com.huixin.auth.mapper.UserMapper;
@@ -15,10 +16,12 @@ import com.huixin.common.utils.RedisUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -97,8 +100,19 @@ public class AuthServiceImpl implements AuthService {
         user.setStatus(1);
 
         // 4. 保存到数据库
-        int rows = userMapper.insert(user);
-        if (rows <= 0) {
+        try {
+            int rows = userMapper.insert(user);
+            if (rows <= 0) {
+                throw new BusinessException(ResultCode.INTERNAL_ERROR, "注册失败，请稍后重试");
+            }
+        } catch (DuplicateKeyException e) {
+            // 并发注册时，数据库 UNIQUE 约束兜底
+            if (e.getMessage() != null && e.getMessage().contains("uk_username")) {
+                throw new BusinessException(ResultCode.USERNAME_EXIST);
+            }
+            if (e.getMessage() != null && e.getMessage().contains("uk_email")) {
+                throw new BusinessException(ResultCode.EMAIL_EXIST);
+            }
             throw new BusinessException(ResultCode.INTERNAL_ERROR, "注册失败，请稍后重试");
         }
 
@@ -146,9 +160,10 @@ public class AuthServiceImpl implements AuthService {
         // 4. 生成Token
         TokenVO tokenVO = generateTokens(user);
 
-        // 5. 更新最后登录时间（简单处理，用updateById）
-        user.setId(user.getId());
-        userMapper.updateById(user); // 自动填充 updateTime
+        // 5. 更新最后登录时间（仅更新 updateTime，避免全行 UPDATE）
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(User::getId, user.getId());
+        userMapper.update(null, updateWrapper); // 自动填充 updateTime
 
         log.info("[登录成功] username={}, userId={}, role={}", user.getUsername(), user.getId(), user.getRoleType());
 
@@ -185,7 +200,10 @@ public class AuthServiceImpl implements AuthService {
 
         // 4. 查询用户
         User user = userMapper.selectById(userId);
-        if (user == null || user.getStatus() == 0) {
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
+        if (user.getStatus() == 0) {
             throw new BusinessException(ResultCode.ACCOUNT_DISABLED);
         }
 

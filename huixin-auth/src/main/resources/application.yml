@@ -42,8 +42,8 @@ mybatis-plus:
   configuration:
     # 驼峰命名转换（下划线 → 驼峰）
     map-underscore-to-camel-case: true
-    # SQL日志（开发环境）
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # SQL日志（仅开发环境，生产环境应移除）
+    # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # Knife4j API文档
 springdoc:
@@ -52,7 +52,8 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 knife4j:
-  enable: true
+  # 生产环境应设为 false，避免泄露 API 结构
+  enable: ${KNIFE4J_ENABLE:true}
   setting:
     language: zh_cn
 
