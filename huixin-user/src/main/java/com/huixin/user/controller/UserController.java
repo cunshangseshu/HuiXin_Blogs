@@ -10,6 +10,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Huixin Blog
  */
 @Tag(name = "用户管理", description = "用户个人信息、密码、头像、博主申请等接口")
+@Validated
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -49,6 +53,7 @@ public class UserController {
      * 获取指定用户的公开信息
      * <p>
      * 用于查看文章作者信息、评论者信息等场景。
+     * 注意：该接口为公开接口，生产环境应在 Gateway 层配置限流防止用户枚举。
      * </p>
      *
      * @param id 用户ID（路径参数）
@@ -122,6 +127,8 @@ public class UserController {
             @Parameter(description = "用户ID", required = true, hidden = true)
             @RequestHeader("X-User-Id") Long userId,
             @Parameter(description = "头像URL", required = true)
+            @NotBlank(message = "头像URL不能为空")
+            @Pattern(regexp = "^(https?://|data:image/).+", message = "头像URL格式不正确")
             @RequestParam String avatarUrl) {
         userService.updateAvatar(userId, avatarUrl);
         return ResultVO.success("头像更新成功");

@@ -1,6 +1,7 @@
 package com.huixin.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.huixin.common.entity.BloggerApply;
 import com.huixin.common.entity.User;
 import com.huixin.common.enums.ResultCode;
@@ -14,9 +15,12 @@ import com.huixin.user.service.UserService;
 import com.huixin.user.vo.UserVO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 用户服务实现类
@@ -46,6 +50,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserVO getUserInfo(Long userId) {
+        if (userId == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "用户身份信息缺失");
+        }
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -58,6 +65,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserVO getUserPublicInfo(Long userId) {
+        if (userId == null) {
+            throw new BusinessException(ResultCode.BAD_REQUEST, "用户ID不能为空");
+        }
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -85,25 +95,30 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateUserInfo(Long userId, UpdateUserDTO dto) {
+        if (userId == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "用户身份信息缺失");
+        }
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
 
-        // 仅更新传入的字段
+        // 使用 LambdaUpdateWrapper 仅更新传入字段，避免全行 UPDATE
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userId);
         boolean needUpdate = false;
         if (dto.getNickname() != null) {
-            user.setNickname(dto.getNickname());
+            wrapper.set(User::getNickname, dto.getNickname());
             needUpdate = true;
         }
         if (dto.getBio() != null) {
-            user.setBio(dto.getBio());
+            wrapper.set(User::getBio, dto.getBio());
             needUpdate = true;
         }
 
         if (needUpdate) {
-            userMapper.updateById(user);
-            log.info("[更新用户信息] userId={}, nickname={}, bio={}", userId, user.getNickname(), user.getBio());
+            userMapper.update(null, wrapper);
+            log.info("[更新用户信息] userId={}, nickname={}, bio={}", userId, dto.getNickname(), dto.getBio());
         }
     }
 
@@ -121,6 +136,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void changePassword(Long userId, ChangePasswordDTO dto) {
+        if (userId == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "用户身份信息缺失");
+        }
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -131,14 +149,16 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ResultCode.PASSWORD_ERROR);
         }
 
-        // 2. 新旧密码不能相同
-        if (PASSWORD_ENCODER.matches(dto.getNewPassword(), user.getPassword())) {
+        // 2. 新旧密码不能相同（明文比较即可，避免昂贵的 BCrypt.matches 调用）
+        if (dto.getOldPassword().equals(dto.getNewPassword())) {
             throw new BusinessException(ResultCode.BAD_REQUEST, "新密码不能与旧密码相同");
         }
 
-        // 3. 加密并更新密码
-        user.setPassword(PASSWORD_ENCODER.encode(dto.getNewPassword()));
-        userMapper.updateById(user);
+        // 3. 使用 LambdaUpdateWrapper 仅更新密码字段
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userId)
+               .set(User::getPassword, PASSWORD_ENCODER.encode(dto.getNewPassword()));
+        userMapper.update(null, wrapper);
 
         log.info("[修改密码成功] userId={}", userId);
     }
@@ -155,13 +175,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateAvatar(Long userId, String avatarUrl) {
+        if (userId == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "用户身份信息缺失");
+        }
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
 
-        user.setAvatarUrl(avatarUrl);
-        userMapper.updateById(user);
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userId)
+               .set(User::getAvatarUrl, avatarUrl);
+        userMapper.update(null, wrapper);
 
         log.info("[头像更新成功] userId={}, avatarUrl={}", userId, avatarUrl);
     }
@@ -178,6 +203,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void applyBlogger(Long userId, BloggerApplyDTO dto) {
+        if (userId == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "用户身份信息缺失");
+        }
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -203,8 +231,14 @@ public class UserServiceImpl implements UserService {
         apply.setUserId(userId);
         apply.setApplyReason(dto.getApplyReason());
         apply.setApplyStatus(0); // 待审核
+        // 防御性设置 createTime（MyBatis Plus @TableField fill 机制自动处理，此处作为兜底）
+        apply.setCreateTime(LocalDateTime.now());
 
-        bloggerApplyMapper.insert(apply);
+        try {
+            bloggerApplyMapper.insert(apply);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(ResultCode.BLOGGER_APPLY_DUPLICATE);
+        }
 
         log.info("[博主申请提交] userId={}, applyId={}", userId, apply.getId());
     }

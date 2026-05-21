@@ -16,7 +16,7 @@ public class ChangePasswordDTO {
 
     @NotBlank(message = "新密码不能为空")
     @Size(min = 8, max = 20, message = "新密码长度需在8-20位之间")
-    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).+$", message = "新密码必须包含字母和数字")
+    @Pattern(regexp = "^(?=\\S+$)(?=.*[a-zA-Z])(?=.*\\d).+$", message = "新密码必须包含字母和数字，且不能包含空格")
     @Schema(description = "新密码", example = "new67890")
     private String newPassword;
 
