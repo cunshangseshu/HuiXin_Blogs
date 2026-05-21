@@ -20,24 +20,10 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * 全局JWT鉴权过滤器
- * <p>
- * 在Gateway层统一校验JWT Token，校验通过后将用户信息注入请求头（X-User-Id/X-Username/X-Role），
- * 下游微服务直接从请求头获取当前用户信息，无需重复解析Token。
- * </p>
- *
- * <p><b>白名单路径（无需Token）：</b></p>
- * <ul>
- *   <li>/api/auth/** — 注册/登录</li>
- *   <li>GET /api/article/** — 文章列表/详情（公开阅读）</li>
- *   <li>GET /api/category/** — 分类查询</li>
- *   <li>GET /api/tag/** — 标签查询</li>
- *   <li>GET /api/search/** — 搜索</li>
- *   <li>GET /api/stats/** — 统计数据</li>
- *   <li>POST /api/stats/article/*\/view — 公开阅读统计</li>
- * </ul>
  *
  * @author Huixin Blog
  */
@@ -46,31 +32,22 @@ import java.util.List;
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     /**
-     * 白名单路径前缀
+     * 白名单路径前缀（不含尾部斜杠，内部做规范化匹配）
      */
     private static final List<String> WHITELIST_PREFIXES = List.of(
-            "/api/auth/",
-            "/api/search/",
-            "/api/category/",
-            "/api/tag/"
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/refresh"
     );
 
-    /**
-     * 认证请求头名称
-     */
     private static final String AUTH_HEADER = HttpHeaders.AUTHORIZATION;
-
-    /**
-     * Bearer Token前缀
-     */
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String HEADER_USER_ID  = "X-User-Id";
+    private static final String HEADER_USERNAME = "X-Username";
+    private static final String HEADER_ROLE     = "X-Role";
 
-    /**
-     * 传递给下游的用户信息请求头
-     */
-    private static final String HEADER_USER_ID   = "X-User-Id";
-    private static final String HEADER_USERNAME  = "X-Username";
-    private static final String HEADER_ROLE      = "X-Role";
+    /** 防头注入：需要被点赞检查的路径正则 */
+    private static final Pattern LIKED_PATH = Pattern.compile("^/api/stats/article/\\d+/liked$");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -78,17 +55,28 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         String path = request.getURI().getPath();
         HttpMethod method = request.getMethod();
 
-        // 1. 白名单放行
-        // OPTIONS预检请求放行（CORS）
+        // ========== 安全：清除客户端可能伪造的内部请求头 ==========
+        ServerHttpRequest cleanedRequest = request.mutate()
+                .headers(headers -> {
+                    headers.remove(HEADER_USER_ID);
+                    headers.remove(HEADER_USERNAME);
+                    headers.remove(HEADER_ROLE);
+                })
+                .build();
+        exchange = exchange.mutate().request(cleanedRequest).build();
+
+        // 1. OPTIONS预检放行（CORS）
         if (method == HttpMethod.OPTIONS) {
             return chain.filter(exchange);
         }
+
+        // 2. 白名单放行
         if (isWhitelisted(path, method)) {
             log.debug("[白名单放行] {} {}", method, path);
             return chain.filter(exchange);
         }
 
-        // 2. 获取Token
+        // 3. 获取Token
         String authHeader = request.getHeaders().getFirst(AUTH_HEADER);
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             log.warn("[缺少Token] {} {}", method, path);
@@ -97,13 +85,13 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // 3. 验证Token
+        // 4. 验证Token
         if (!JwtUtil.validateToken(token)) {
             log.warn("[Token无效] {} {}", method, path);
             return unauthorized(exchange, "登录已过期，请重新登录");
         }
 
-        // 4. 提取用户信息
+        // 5. 提取用户信息
         Claims claims = JwtUtil.parseToken(token);
         Long userId = claims.get(JwtUtil.CLAIM_USER_ID, Long.class);
         String username = claims.get(JwtUtil.CLAIM_USERNAME, String.class);
@@ -114,10 +102,10 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "Token信息无效");
         }
 
-        // 5. 注入请求头传递给下游
-        ServerHttpRequest mutatedRequest = request.mutate()
+        // 6. 注入请求头传递给下游（防止 null 传递）
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header(HEADER_USER_ID, userId.toString())
-                .header(HEADER_USERNAME, username)
+                .header(HEADER_USERNAME, username != null ? username : "")
                 .header(HEADER_ROLE, role != null ? role.toString() : "0")
                 .build();
 
@@ -128,7 +116,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        // 优先级最高，在其他过滤器之前执行
         return -100;
     }
 
@@ -138,22 +125,54 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
      * 判断路径是否在白名单中
      */
     private boolean isWhitelisted(String path, HttpMethod method) {
-        // 前缀白名单
+        // 路径规范化：确保以 / 结尾用于前缀匹配
+        String normalizedPath = path.endsWith("/") ? path : path + "/";
+
+        // 前缀白名单（精确路径 + 前缀匹配）
         for (String prefix : WHITELIST_PREFIXES) {
-            if (path.startsWith(prefix)) {
+            if (path.equals(prefix) || path.startsWith(prefix + "/") || path.startsWith(prefix + "?")) {
                 return true;
             }
         }
 
-        // GET请求的文章/统计接口公开
-        if (method == HttpMethod.GET) {
-            if (path.startsWith("/api/article/") || path.startsWith("/api/stats/")) {
-                return true;
+        // /api/auth/ 下的子路径也放行（如 /api/auth/logout 需要 JWT，由下游自行校验）
+        // 注意：logout 和 refresh 需要 JWT 的场景，由具体服务自行校验，此处仅放行路由
+
+        // 公开读取：分类、标签、搜索
+        if (normalizedPath.startsWith("/api/category/") || normalizedPath.startsWith("/api/tag/")) {
+            return true;
+        }
+
+        // 搜索：GET /api/search 和 /api/search/**
+        if (method == HttpMethod.GET && (path.equals("/api/search") || normalizedPath.startsWith("/api/search/"))) {
+            return true;
+        }
+
+        // 文章：GET 公开读取
+        if (method == HttpMethod.GET && normalizedPath.startsWith("/api/article/")) {
+            return true;
+        }
+
+        // 评论：GET 公开读取
+        if (method == HttpMethod.GET && normalizedPath.startsWith("/api/comment/")) {
+            return true;
+        }
+
+        // 统计：GET 公开读取（但 liked 需要认证）
+        if (method == HttpMethod.GET && normalizedPath.startsWith("/api/stats/")) {
+            if (LIKED_PATH.matcher(path).matches()) {
+                return false; // 点赞状态查询需要认证
             }
+            return true;
         }
 
         // POST /api/stats/article/{id}/view 公开（阅读量统计）
         if (method == HttpMethod.POST && path.matches("^/api/stats/article/\\d+/view$")) {
+            return true;
+        }
+
+        // ===== 认证相关端点（公开） =====
+        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
             return true;
         }
 
