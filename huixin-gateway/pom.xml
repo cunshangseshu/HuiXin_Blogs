@@ -37,10 +37,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
-        <!-- 公共模块 -->
+        <!-- 公共模块（排除 spring-boot-starter-web，Gateway 只能用 WebFlux） -->
         <dependency>
             <groupId>com.huixin</groupId>
             <artifactId>huixin-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>

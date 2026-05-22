@@ -16,10 +16,10 @@
     <description>公共依赖：通用实体类、工具类、异常定义、统一返回结果、配置类等</description>
 
     <dependencies>
-        <!-- Spring Boot Starter（提供基础自动配置，不包含 Web MVC） -->
+        <!-- Spring Boot Web（提供HttpServletRequest、@RestController等基础Web能力） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- Spring Boot Validation（参数校验） -->
