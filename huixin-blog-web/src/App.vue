@@ -2,11 +2,22 @@
   <div id="huixin-app" class="min-vh-100">
     <Navbar />
     <main class="container-fluid py-3">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
+    <ScrollToTop />
   </div>
 </template>
 
 <script setup>
 import Navbar from './components/Navbar.vue'
+import ScrollToTop from './components/ScrollToTop.vue'
 </script>
+
+<style>
+.fade-enter-active, .fade-leave-active { transition: opacity .2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>

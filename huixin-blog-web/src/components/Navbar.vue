@@ -2,16 +2,17 @@
   <nav class="navbar navbar-expand-lg navbar-huixin sticky-top">
     <div class="container-fluid">
       <router-link to="/" class="navbar-brand d-flex align-items-center">
-        <span class="me-2">&#x2728;</span>慧芯博客
+        <span class="brand-icon me-2">&#x2728;</span>慧芯博客
       </router-link>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navMain">
         <ul class="navbar-nav me-auto">
-          <li class="nav-item"><router-link to="/" class="nav-link">首页</router-link></li>
+          <li class="nav-item"><router-link to="/" class="nav-link">&#x2302; 首页</router-link></li>
+          <li class="nav-item"><router-link to="/about" class="nav-link">&#x1F3FA; 关于</router-link></li>
           <li class="nav-item" v-if="store.isBlogger">
-            <router-link to="/article/new" class="nav-link">写文章</router-link>
+            <router-link to="/article/new" class="nav-link">&#x270F; 写文章</router-link>
           </li>
         </ul>
         <form class="d-flex me-3" @submit.prevent="doSearch">
