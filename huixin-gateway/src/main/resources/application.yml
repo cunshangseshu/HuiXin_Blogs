@@ -27,36 +27,36 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
-      # 路由配置
+      # 路由配置（开发环境直连，生产环境改 lb:// 走 Nacos 负载均衡）
       routes:
         # 认证服务路由
         - id: huixin-auth
-          uri: lb://huixin-auth
+          uri: http://localhost:8081
           predicates:
             - Path=/api/auth/**
         # 用户服务路由
         - id: huixin-user
-          uri: lb://huixin-user
+          uri: http://localhost:8082
           predicates:
             - Path=/api/user/**
         # 文章服务路由
         - id: huixin-article
-          uri: lb://huixin-article
+          uri: http://localhost:8083
           predicates:
             - Path=/api/article/**,/api/category/**,/api/tag/**
         # 评论服务路由
         - id: huixin-comment
-          uri: lb://huixin-comment
+          uri: http://localhost:8084
           predicates:
             - Path=/api/comment/**
         # 搜索服务路由
         - id: huixin-search
-          uri: lb://huixin-search
+          uri: http://localhost:8085
           predicates:
             - Path=/api/search/**
         # 统计服务路由
         - id: huixin-stats
-          uri: lb://huixin-stats
+          uri: http://localhost:8086
           predicates:
             - Path=/api/stats/**
 
