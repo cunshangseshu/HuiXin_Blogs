@@ -20,8 +20,7 @@
     <!-- ============================================================ -->
     <modules>
         <module>huixin-common</module>
-        <!-- TODO: 网关模块暂时禁用（Spring MVC 与 WebFlux 冲突待解决），代码保留在 huixin-gateway/ -->
-        <!-- <module>huixin-gateway</module> -->
+        <module>huixin-gateway</module>
         <module>huixin-auth</module>
         <module>huixin-user</module>
         <module>huixin-article</module>
