@@ -21,7 +21,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -117,6 +121,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         log.info("[注册成功] username={}, userId={}", username, user.getId());
+
+        // 记录到测试账号文档（开发环境）
+        recordAccount(username, registerDTO.getPassword(), email, user.getId());
     }
 
     /* ==================== 登录 ==================== */
@@ -275,6 +282,32 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .expiresIn(JwtUtil.ACCESS_TOKEN_EXPIRE / 1000) // 转为秒
                 .build();
+    }
+
+    /**
+     * 记录注册账号到测试文档（仅开发环境）
+     */
+    private static void recordAccount(String username, String password, String email, Long userId) {
+        try {
+            File file = new File("docs/测试账号.md");
+            boolean isNew = !file.exists();
+            file.getParentFile().mkdirs();
+            try (PrintWriter pw = new PrintWriter(new FileWriter(file, true))) {
+                if (isNew) {
+                    pw.println("# 测试账号记录");
+                    pw.println();
+                    pw.println("> 每次注册自动追加，请勿提交到 Git");
+                    pw.println();
+                    pw.println("| 序号 | 注册时间 | 用户名 | 密码 | 邮箱 | 用户ID |");
+                    pw.println("|------|---------|--------|------|------|--------|");
+                }
+                String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                pw.printf("| %d | %s | %s | %s | %s | %d |%n",
+                        System.currentTimeMillis() % 100000, time, username, password, email, userId);
+            }
+        } catch (Exception ignored) {
+            // 记录失败不影响注册流程
+        }
     }
 
 }
