@@ -11,7 +11,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * 负责用户注册、登录、JWT Token签发与验证。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @SpringBootApplication(scanBasePackages = {"com.huixin.auth", "com.huixin.common"})
 @EnableDiscoveryClient

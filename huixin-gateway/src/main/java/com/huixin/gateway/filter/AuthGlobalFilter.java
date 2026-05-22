@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * 全局JWT鉴权过滤器
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Slf4j
 @Component

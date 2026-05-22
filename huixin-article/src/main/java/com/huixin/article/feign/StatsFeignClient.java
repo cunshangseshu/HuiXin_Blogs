@@ -13,7 +13,7 @@ import java.util.Map;
  * 用于上报/获取文章统计数据。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @FeignClient(name = "huixin-stats", path = "/api/stats")
 public interface StatsFeignClient {

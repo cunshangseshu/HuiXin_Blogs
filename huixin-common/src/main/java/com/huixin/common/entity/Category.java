@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 对应分类表（category）。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

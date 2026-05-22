@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 对应系统配置表（system_config），存储博客名称、公告等系统级配置。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

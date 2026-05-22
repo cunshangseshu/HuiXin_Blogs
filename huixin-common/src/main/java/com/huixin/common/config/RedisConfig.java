@@ -19,7 +19,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * 启用Spring Cache注解支持（@Cacheable、@CacheEvict、@CachePut）
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Configuration
 @EnableCaching

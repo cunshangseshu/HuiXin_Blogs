@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 对应标签表（tag），与文章为多对多关系。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

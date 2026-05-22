@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * 返回标准格式的ResultVO，避免异常信息直接暴露给前端。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Slf4j
 @RestControllerAdvice

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 评论管理控制器
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Tag(name = "评论管理", description = "文章评论发布、删除、查询等接口")
 @RestController

@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * 统计服务接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public interface StatsService {
 

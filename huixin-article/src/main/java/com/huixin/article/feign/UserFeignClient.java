@@ -15,7 +15,7 @@ import java.util.Map;
  * 用于获取文章作者信息。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @FeignClient(name = "huixin-user", path = "/api/user")
 public interface UserFeignClient {

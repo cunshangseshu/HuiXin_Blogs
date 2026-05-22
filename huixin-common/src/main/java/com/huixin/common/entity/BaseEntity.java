@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * 配合MyBatis Plus自动填充和逻辑删除功能使用。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public abstract class BaseEntity implements Serializable {
 

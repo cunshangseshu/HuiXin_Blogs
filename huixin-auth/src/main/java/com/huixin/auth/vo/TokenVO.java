@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
  * 登录成功或刷新Token后返回给前端。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Builder

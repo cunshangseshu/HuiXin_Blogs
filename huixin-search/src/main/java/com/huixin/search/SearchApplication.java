@@ -12,7 +12,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * 该模块不直接操作数据库，故无需 @MapperScan。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @SpringBootApplication(scanBasePackages = {"com.huixin.search", "com.huixin.common"})
 @EnableDiscoveryClient

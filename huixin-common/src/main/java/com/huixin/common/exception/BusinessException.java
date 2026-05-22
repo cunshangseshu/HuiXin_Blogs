@@ -10,7 +10,7 @@ import lombok.Getter;
  * 所有非预期的业务情况都应抛出此异常或其子类。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Getter
 public class BusinessException extends RuntimeException {

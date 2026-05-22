@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 文章列表查询DTO
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Schema(description = "文章列表查询参数")

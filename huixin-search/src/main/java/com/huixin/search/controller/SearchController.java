@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 搜索服务控制器
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Tag(name = "搜索服务", description = "全文搜索、热门搜索词等接口")
 @RestController

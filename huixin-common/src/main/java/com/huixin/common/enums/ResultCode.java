@@ -11,7 +11,7 @@ import lombok.Getter;
  * 5xx：服务端错误
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Getter
 @AllArgsConstructor

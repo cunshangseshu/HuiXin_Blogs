@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 用于登录时的用户名/邮箱查找用户。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Mapper
 public interface UserMapper extends BaseMapper<User> {

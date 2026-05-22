@@ -10,7 +10,7 @@ import lombok.Data;
  * 支持使用用户名或邮箱登录。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Schema(description = "登录请求")

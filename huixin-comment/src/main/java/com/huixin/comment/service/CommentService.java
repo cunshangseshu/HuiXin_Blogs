@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 评论服务接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public interface CommentService {
 

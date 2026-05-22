@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * 所有接口（除公开查询外）需要登录态，用户ID从Gateway传递的请求头获取。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Tag(name = "用户管理", description = "用户个人信息、密码、头像、博主申请等接口")
 @Validated

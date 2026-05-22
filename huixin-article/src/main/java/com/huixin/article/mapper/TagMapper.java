@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Update;
 /**
  * 标签Mapper接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Mapper
 public interface TagMapper extends BaseMapper<Tag> {

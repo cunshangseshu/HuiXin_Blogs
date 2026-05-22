@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
  * parentId = NULL 表示一级评论，非NULL 表示回复某条评论。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

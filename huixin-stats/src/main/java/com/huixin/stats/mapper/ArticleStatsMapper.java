@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 文章统计Mapper接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Mapper
 public interface ArticleStatsMapper extends BaseMapper<ArticleStats> {

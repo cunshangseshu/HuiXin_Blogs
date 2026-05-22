@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  * 注意：这些接口在Gateway白名单中，无需携带Token访问。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Tag(name = "认证管理", description = "用户注册、登录、Token管理等认证相关接口")
 @RestController

@@ -12,7 +12,7 @@ import org.apache.ibatis.annotations.Update;
  * 提供文章的自定义查询方法，基础CRUD由BaseMapper自动提供。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Mapper
 public interface ArticleMapper extends BaseMapper<Article> {

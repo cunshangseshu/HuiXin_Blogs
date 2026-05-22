@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 点赞记录Mapper接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Mapper
 public interface LikeRecordMapper extends BaseMapper<LikeRecord> {

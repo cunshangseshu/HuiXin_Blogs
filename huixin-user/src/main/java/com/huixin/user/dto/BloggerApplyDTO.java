@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * 博主申请请求DTO
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Schema(description = "博主申请请求")

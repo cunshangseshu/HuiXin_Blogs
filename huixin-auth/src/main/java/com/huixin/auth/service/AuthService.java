@@ -10,7 +10,7 @@ import com.huixin.auth.vo.TokenVO;
  * 提供用户注册、登录、Token刷新、登出等认证相关操作。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public interface AuthService {
 

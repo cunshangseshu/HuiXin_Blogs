@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 统计服务控制器
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Tag(name = "数据统计", description = "文章阅读量、点赞、热门排行等统计接口")
 @RestController

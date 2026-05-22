@@ -12,7 +12,7 @@ import com.huixin.user.vo.UserVO;
  * 信息查询、修改、密码更新、头像上传、博主申请。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public interface UserService {
 

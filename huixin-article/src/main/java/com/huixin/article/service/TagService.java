@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 标签服务接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public interface TagService {
 

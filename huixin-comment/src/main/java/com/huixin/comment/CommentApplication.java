@@ -13,7 +13,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * 通过OpenFeign调用文章服务和用户服务。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @SpringBootApplication(scanBasePackages = {"com.huixin.comment", "com.huixin.common"})
 @EnableDiscoveryClient

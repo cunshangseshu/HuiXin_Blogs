@@ -10,7 +10,7 @@ import com.huixin.common.vo.PageVO;
 /**
  * 文章服务接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 public interface ArticleService {
 

@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * 包含定时任务（Redis数据定期同步到MySQL）。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @SpringBootApplication(scanBasePackages = {"com.huixin.stats", "com.huixin.common"})
 @EnableDiscoveryClient

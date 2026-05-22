@@ -15,7 +15,7 @@ import java.time.LocalDate;
  * 实时数据（今日阅读量）存Redis，累计数据定时同步到本表。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

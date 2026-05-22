@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Update;
 /**
  * 分类Mapper接口
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Mapper
 public interface CategoryMapper extends BaseMapper<Category> {

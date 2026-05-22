@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 /**
  * 文章列表项VO（卡片视图，不含正文）
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Builder

@@ -9,7 +9,7 @@ import lombok.Data;
 /**
  * 创建评论请求DTO
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Schema(description = "创建评论请求")

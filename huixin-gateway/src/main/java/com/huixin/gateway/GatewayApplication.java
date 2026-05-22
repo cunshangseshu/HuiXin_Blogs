@@ -14,7 +14,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * - 接口限流
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @SpringBootApplication
 @EnableDiscoveryClient

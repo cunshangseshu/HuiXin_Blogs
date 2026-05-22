@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 创建文章请求DTO
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Schema(description = "创建文章请求")

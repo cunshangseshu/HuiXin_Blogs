@@ -22,7 +22,7 @@ import java.util.Map;
  * - Refresh Token：有效期7天，用于刷新Access Token
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Slf4j
 public class JwtUtil {

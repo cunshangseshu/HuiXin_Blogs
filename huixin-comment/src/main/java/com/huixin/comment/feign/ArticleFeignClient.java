@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * 文章服务Feign客户端
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @FeignClient(name = "huixin-article", path = "/api/article")
 public interface ArticleFeignClient {

@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
  * 访问地址：http://{host}:{port}/doc.html
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Configuration
 public class Knife4jConfig {

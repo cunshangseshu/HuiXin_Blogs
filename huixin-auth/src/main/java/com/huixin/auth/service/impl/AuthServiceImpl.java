@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * 密码使用BCrypt加密，Token使用JWT + Redis双重管理。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Slf4j
 @Service
@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
         // 3. 构建用户对象
         User user = new User();
         user.setUsername(username);
-        user.setPassword(PASSWORD_ENCODER.encode(registerDTO.getPassword()));
+        user.setPassword(PASSWORD_ENCODER.encode(registerDTO.getPassword()));//还加密了，6；
         user.setEmail(email);
         // 昵称默认使用用户名
         user.setNickname(username);

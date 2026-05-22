@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * 封装常用的Redis操作方法，简化业务代码。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Component
 public class RedisUtil {

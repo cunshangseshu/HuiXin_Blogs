@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 分类管理控制器
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Tag(name = "分类管理", description = "文章分类查询接口")
 @RestController

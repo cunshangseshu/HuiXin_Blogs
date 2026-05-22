@@ -10,7 +10,7 @@ import lombok.Data;
  * 仅允许修改昵称和个人简介，用户名/邮箱/角色等敏感字段不可通过此接口修改。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Schema(description = "更新用户信息请求")

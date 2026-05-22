@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
  * 数据库字段 create_time 会自动映射到Java属性 createTime。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Configuration
 public class MyBatisPlusConfig {

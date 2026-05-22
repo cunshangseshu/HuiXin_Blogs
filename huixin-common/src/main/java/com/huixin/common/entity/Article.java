@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * 阅读量和点赞数从Redis定期同步更新。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

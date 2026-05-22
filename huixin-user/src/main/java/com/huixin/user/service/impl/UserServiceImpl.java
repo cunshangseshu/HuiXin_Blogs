@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
  * 密码使用BCrypt加密，头像URL由上层(Controller)负责文件上传后传入。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Slf4j
 @Service

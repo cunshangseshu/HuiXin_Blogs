@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * 对外暴露的用户信息视图，屏蔽敏感字段（密码、逻辑删除标识等）。
  * </p>
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Builder

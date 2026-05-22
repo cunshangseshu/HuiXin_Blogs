@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * 用户服务Feign客户端
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @FeignClient(name = "huixin-user", path = "/api/user")
 public interface UserFeignClient {

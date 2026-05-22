@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 评论VO（含回复列表）
  *
- * @author Huixin Blog
+ * @author 爱吃罗氏虾
  */
 @Data
 @Builder
