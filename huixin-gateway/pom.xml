@@ -42,7 +42,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
-        <!-- 公共模块（排除 spring-boot-starter-web，Gateway 只能用 WebFlux） -->
+        <!-- 公共模块（排除 spring-boot-starter-web & knife4j，Gateway 用 WebFlux） -->
         <dependency>
             <groupId>com.huixin</groupId>
             <artifactId>huixin-common</artifactId>
@@ -50,6 +50,10 @@
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.xiaoymin</groupId>
+                    <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
