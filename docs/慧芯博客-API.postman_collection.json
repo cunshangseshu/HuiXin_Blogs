@@ -1,0 +1,424 @@
+{
+  "info": {
+    "name": "慧芯博客 API",
+    "description": "慧芯博客（Huixin Blog）微服务 API 集合\n\n⚠️ 当前网关未启用，各服务独立端口访问：\n  - 认证服务 :8081\n  - 用户服务 :8082\n  - 文章服务 :8083\n  - 评论服务 :8084\n  - 搜索服务 :8085\n  - 统计服务 :8086\n\n🔐 无网关时鉴权方式：\n  1. 调用 登录接口 获取 accessToken\n  2. 需要登录的接口手动设置 Headers：\n     - Authorization: Bearer <accessToken>\n     - X-User-Id: <登录接口返回的userId>",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "auth_host",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "user_host",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "article_host",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "comment_host",
+      "value": "http://localhost:8084"
+    },
+    {
+      "key": "search_host",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "stats_host",
+      "value": "http://localhost:8086"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 认证服务 (:8081)",
+      "item": [
+        {
+          "name": "注册",
+          "request": {
+            "method": "POST",
+            "url": "{{auth_host}}/api/auth/register",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"abc12345\",\n  \"email\": \"test@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "登录",
+          "request": {
+            "method": "POST",
+            "url": "{{auth_host}}/api/auth/login",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"testuser\",\n  \"password\": \"abc12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var data = pm.response.json();",
+                  "if (data.code === 200 && data.data) {",
+                  "  pm.collectionVariables.set('access_token', data.data.accessToken);",
+                  "  // 从JWT解析userId（无网关时手动获取）",
+                  "  var payload = JSON.parse(atob(data.data.accessToken.split('.')[1]));",
+                  "  pm.collectionVariables.set('user_id', payload.userId);",
+                  "  console.log('登录成功 userId=' + payload.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "刷新Token",
+          "request": {
+            "method": "POST",
+            "url": "{{auth_host}}/api/auth/refresh",
+            "header": [
+              { "key": "X-Refresh-Token", "value": "{{refresh_token}}" }
+            ]
+          }
+        },
+        {
+          "name": "登出",
+          "request": {
+            "method": "POST",
+            "url": "{{auth_host}}/api/auth/logout",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 用户服务 (:8082)",
+      "item": [
+        {
+          "name": "获取当前用户信息",
+          "request": {
+            "method": "GET",
+            "url": "{{user_host}}/api/user/info",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ]
+          }
+        },
+        {
+          "name": "获取用户公开信息",
+          "request": {
+            "method": "GET",
+            "url": "{{user_host}}/api/user/1"
+          }
+        },
+        {
+          "name": "修改个人信息",
+          "request": {
+            "method": "PUT",
+            "url": "{{user_host}}/api/user/info",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nickname\": \"程序员小明\",\n  \"bio\": \"一个热爱技术的全栈开发者\"\n}"
+            }
+          }
+        },
+        {
+          "name": "修改密码",
+          "request": {
+            "method": "PUT",
+            "url": "{{user_host}}/api/user/password",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"abc12345\",\n  \"newPassword\": \"xyz67890\"\n}"
+            }
+          }
+        },
+        {
+          "name": "更新头像",
+          "request": {
+            "method": "POST",
+            "url": "{{user_host}}/api/user/avatar",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "avatarUrl", "value": "https://example.com/avatar.jpg" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "申请成为博主",
+          "request": {
+            "method": "POST",
+            "url": "{{user_host}}/api/user/blogger/apply",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applyReason\": \"我是一名资深Java开发者，希望分享技术文章\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 文章服务 (:8083)",
+      "item": [
+        {
+          "name": "发布文章",
+          "request": {
+            "method": "POST",
+            "url": "{{article_host}}/api/article",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spring Boot 3 快速入门\",\n  \"summary\": \"本文介绍Spring Boot 3的核心特性\",\n  \"content\": \"## 什么是Spring Boot\\n\\nSpring Boot是一个简化Spring应用开发的框架...\",\n  \"categoryId\": 1,\n  \"tagIds\": [1, 2],\n  \"isOriginal\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "编辑文章",
+          "request": {
+            "method": "PUT",
+            "url": "{{article_host}}/api/article/1",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spring Boot 3 入门指南（修订版）\",\n  \"summary\": \"更新后的摘要\",\n  \"content\": \"## 修订后的内容...\",\n  \"categoryId\": 1,\n  \"tagIds\": [1, 3],\n  \"isOriginal\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "删除文章",
+          "request": {
+            "method": "DELETE",
+            "url": "{{article_host}}/api/article/1",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ]
+          }
+        },
+        {
+          "name": "获取文章详情",
+          "request": {
+            "method": "GET",
+            "url": "{{article_host}}/api/article/1"
+          }
+        },
+        {
+          "name": "文章列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{article_host}}/api/article/list?page=1&size=10&sort=latest",
+              "host": ["{{article_host}}"],
+              "path": ["api", "article", "list"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "10" },
+                { "key": "categoryId", "value": "", "disabled": true },
+                { "key": "keyword", "value": "", "disabled": true },
+                { "key": "sort", "value": "latest" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "用户文章列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{article_host}}/api/article/user/1?page=1&size=10",
+              "host": ["{{article_host}}"],
+              "path": ["api", "article", "user", "1"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "分类列表",
+          "request": {
+            "method": "GET",
+            "url": "{{article_host}}/api/category/list"
+          }
+        },
+        {
+          "name": "标签列表",
+          "request": {
+            "method": "GET",
+            "url": "{{article_host}}/api/tag/list"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 评论服务 (:8084)",
+      "item": [
+        {
+          "name": "发表评论",
+          "request": {
+            "method": "POST",
+            "url": "{{comment_host}}/api/comment",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"articleId\": 1,\n  \"content\": \"写得非常好，受益匪浅！\"\n}"
+            }
+          }
+        },
+        {
+          "name": "回复评论",
+          "request": {
+            "method": "POST",
+            "url": "{{comment_host}}/api/comment",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"articleId\": 1,\n  \"content\": \"同意你的观点！\",\n  \"parentId\": 1,\n  \"replyToUserId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "删除评论",
+          "request": {
+            "method": "DELETE",
+            "url": "{{comment_host}}/api/comment/1",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ]
+          }
+        },
+        {
+          "name": "文章评论列表",
+          "request": {
+            "method": "GET",
+            "url": "{{comment_host}}/api/comment/article/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 搜索服务 (:8085)",
+      "item": [
+        {
+          "name": "搜索文章",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{search_host}}/api/search?keyword=Spring&page=1&size=10",
+              "host": ["{{search_host}}"],
+              "path": ["api", "search"],
+              "query": [
+                { "key": "keyword", "value": "Spring" },
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "热门搜索词",
+          "request": {
+            "method": "GET",
+            "url": "{{search_host}}/api/search/hot-keywords"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 统计服务 (:8086)",
+      "item": [
+        {
+          "name": "记录阅读",
+          "request": {
+            "method": "POST",
+            "url": "{{stats_host}}/api/stats/article/1/view"
+          }
+        },
+        {
+          "name": "点赞/取消点赞",
+          "request": {
+            "method": "POST",
+            "url": "{{stats_host}}/api/stats/article/1/like",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ]
+          }
+        },
+        {
+          "name": "检查点赞状态",
+          "request": {
+            "method": "GET",
+            "url": "{{stats_host}}/api/stats/article/1/liked",
+            "header": [
+              { "key": "X-User-Id", "value": "{{user_id}}" }
+            ]
+          }
+        },
+        {
+          "name": "文章统计",
+          "request": {
+            "method": "GET",
+            "url": "{{stats_host}}/api/stats/article/1"
+          }
+        },
+        {
+          "name": "热门排行",
+          "request": {
+            "method": "GET",
+            "url": "{{stats_host}}/api/stats/hot?limit=10"
+          }
+        }
+      ]
+    }
+  ]
+}
