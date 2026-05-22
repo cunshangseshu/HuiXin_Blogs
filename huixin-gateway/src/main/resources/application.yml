@@ -2,61 +2,39 @@ server:
   port: 8080
 
 spring:
-  application:
-    name: huixin-gateway
   cloud:
-    nacos:
-      discovery:
-        server-addr: 192.168.238.134:8848
-        namespace: huixin-blog
-        group: HUIXIN_GROUP
-      config:
-        server-addr: 192.168.238.134:8848
-        namespace: huixin-blog
-        group: HUIXIN_GROUP
-        file-extension: yaml
-        refresh-enabled: true
     gateway:
-      # 全局跨域配置
       globalcors:
         cors-configurations:
           '[/**]':
-            # 开发环境允许 localhost，生产环境需改为实际域名
             allowedOriginPatterns: "http://localhost:3000,http://127.0.0.1:3000"
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
-      # 路由配置（开发环境直连，生产环境改 lb:// 走 Nacos 负载均衡）
       routes:
-        # 认证服务路由
         - id: huixin-auth
-          uri: http://localhost:8081
+          uri: lb://huixin-auth
           predicates:
             - Path=/api/auth/**
-        # 用户服务路由
         - id: huixin-user
-          uri: http://localhost:8082
+          uri: lb://huixin-user
           predicates:
             - Path=/api/user/**
-        # 文章服务路由
         - id: huixin-article
-          uri: http://localhost:8083
+          uri: lb://huixin-article
           predicates:
             - Path=/api/article/**,/api/category/**,/api/tag/**
-        # 评论服务路由
         - id: huixin-comment
-          uri: http://localhost:8084
+          uri: lb://huixin-comment
           predicates:
             - Path=/api/comment/**
-        # 搜索服务路由
         - id: huixin-search
-          uri: http://localhost:8085
+          uri: lb://huixin-search
           predicates:
             - Path=/api/search/**
-        # 统计服务路由
         - id: huixin-stats
-          uri: http://localhost:8086
+          uri: lb://huixin-stats
           predicates:
             - Path=/api/stats/**
 
