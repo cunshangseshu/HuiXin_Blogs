@@ -167,10 +167,11 @@ public class AuthServiceImpl implements AuthService {
         // 4. 生成Token
         TokenVO tokenVO = generateTokens(user);
 
-        // 5. 更新最后登录时间（仅更新 updateTime，避免全行 UPDATE）
+        // 5. 更新最后登录时间
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(User::getId, user.getId());
-        userMapper.update(null, updateWrapper); // 自动填充 updateTime
+        updateWrapper.eq(User::getId, user.getId())
+                     .set(User::getUpdateTime, LocalDateTime.now());
+        userMapper.update(null, updateWrapper);
 
         log.info("[登录成功] username={}, userId={}, role={}", user.getUsername(), user.getId(), user.getRoleType());
 
