@@ -21,31 +21,31 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 1. 用户数据（3个博主 + 5个普通用户）
 -- ============================================================
 INSERT INTO `user` (`username`, `password`, `email`, `nickname`, `avatar_url`, `bio`, `role_type`, `status`, `create_time`) VALUES
-('zhangsan', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'zhangsan@huixin.com', '程序员张三',
+('zhangsan', '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'zhangsan@huixin.com', '程序员张三',
  NULL,
  '全栈开发者，热爱Java和Vue', 1, 1, '2026-05-01 10:00:00'),
 
-('lisi',     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'lisi@huixin.com', '架构师老李',
+('lisi',     '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'lisi@huixin.com', '架构师老李',
  NULL,
  '10年Java架构经验，专注分布式系统', 1, 1, '2026-05-02 14:00:00'),
 
-('wangwu',   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'wangwu@huixin.com', '前端小王',
+('wangwu',   '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'wangwu@huixin.com', '前端小王',
  NULL,
  'Vue.js重度用户，CSS艺术家', 1, 1, '2026-05-03 09:00:00'),
 
-('testuser', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'testuser@huixin.com', '测试用户赵六',
+('testuser', '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'testuser@huixin.com', '测试用户赵六',
  NULL, '一个热爱阅读的普通用户', 0, 1, '2026-05-10 10:00:00'),
 
-('reader01', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'reader01@huixin.com', '书虫钱七',
+('reader01', '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'reader01@huixin.com', '书虫钱七',
  NULL, '每天都要读一篇好文章', 0, 1, '2026-05-11 11:00:00'),
 
-('reader02', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'reader02@huixin.com', '代码诗人孙八',
+('reader02', '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'reader02@huixin.com', '代码诗人孙八',
  NULL, '在代码中寻找诗意', 0, 1, '2026-05-12 15:00:00'),
 
-('reader03', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'reader03@huixin.com', '极客周九',
+('reader03', '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'reader03@huixin.com', '极客周九',
  NULL, '热衷开源技术', 0, 1, '2026-05-13 08:00:00'),
 
-('reader04', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'reader04@huixin.com', '旅人吴十',
+('reader04', '$2a$10$pXV8eCU4scj5KcwTFlH5sOuPO30hB7LDIDboL2QTWxVRgpW8iygRG', 'reader04@huixin.com', '旅人吴十',
  NULL, '行者无疆，读万卷书行万里路', 0, 1, '2026-05-14 20:00:00');
 
 -- ============================================================
