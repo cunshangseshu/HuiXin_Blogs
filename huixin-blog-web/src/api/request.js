@@ -23,6 +23,9 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
+      try {
+        useUserStore().clearUser()
+      } catch (e) {}
       router.push('/login')
     }
     return Promise.reject(error.response?.data || error)

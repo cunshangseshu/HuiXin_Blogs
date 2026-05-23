@@ -1,70 +1,207 @@
 <template>
-  <div class="mt-4">
-    <h6 class="mb-3">评论 ({{ comments.length }})</h6>
-    <!-- 评论输入 -->
-    <div v-if="store.isLoggedIn" class="mb-3">
-      <textarea v-model="newComment" class="form-control" rows="3" placeholder="写下你的评论..." maxlength="500"></textarea>
-      <button class="btn btn-primary btn-sm mt-2" @click="submitComment" :disabled="!newComment.trim()">发表评论</button>
+  <div class="comment-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="comment-title">评论</h2>
+      <small class="text-muted">{{ totalCount }} 条</small>
     </div>
-    <div v-else class="mb-3 text-muted small">
-      <router-link to="/login">登录</router-link> 后参与评论
-    </div>
-    <!-- 评论列表 -->
-    <div v-for="c in comments" :key="c.id" class="border-bottom pb-2 mb-2">
-      <div class="d-flex align-items-start">
-        <img :src="c.avatarUrl || defaultAvatar" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover">
-        <div class="flex-grow-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <strong class="small">{{ c.username }}</strong>
-              <small class="text-muted ms-2">{{ formatTime(c.createTime) }}</small>
-            </div>
-            <button v-if="store.user?.id === c.userId" class="btn btn-sm text-danger" @click="$emit('delete', c.id)">&times;</button>
-          </div>
-          <p class="mb-1 small">{{ c.content }}</p>
-          <button v-if="store.isLoggedIn" class="btn btn-sm text-muted p-0" @click="replyingTo = c.id; replyContent = ''">回复</button>
-          <!-- 回复输入 -->
-          <div v-if="replyingTo === c.id" class="mt-1">
-            <input v-model="replyContent" class="form-control form-control-sm" placeholder="回复..." maxlength="500">
-            <button class="btn btn-sm btn-outline-primary mt-1" @click="submitReply(c.id, c.userId)">发送</button>
-            <button class="btn btn-sm text-muted mt-1" @click="replyingTo = null">取消</button>
-          </div>
-          <!-- 二级回复 -->
-          <div v-for="r in (c.replies || [])" :key="r.id" class="ms-4 mt-1 p-2 bg-light rounded small">
-            <strong>{{ r.username }}</strong>
-            <span v-if="r.replyToUsername" class="text-muted"> 回复 {{ r.replyToUsername }}</span>
-            ：{{ r.content }}
-            <button v-if="store.user?.id === r.userId" class="btn btn-sm text-danger p-0 ms-1" @click="$emit('delete', r.id)">&times;</button>
-          </div>
-        </div>
+
+    <div v-if="store.isLoggedIn" class="comment-editor mb-4">
+      <textarea v-model="newComment" class="form-control" rows="3" placeholder="写下你的评论" maxlength="500"></textarea>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <small class="text-muted">{{ newComment.length }}/500</small>
+        <button class="btn btn-primary btn-sm" @click="submitComment" :disabled="!newComment.trim() || submitting">
+          {{ submitting ? '发布中...' : '发表评论' }}
+        </button>
       </div>
     </div>
+    <div v-else class="login-tip mb-4">
+      <router-link :to="{ name: 'Login', query: { redirect: $route.fullPath } }">登录</router-link>
+      后参与评论
+    </div>
+
+    <div v-if="comments.length" class="comment-list">
+      <article v-for="comment in comments" :key="comment.id" class="comment-item">
+        <img :src="comment.avatarUrl || defaultAvatar" class="comment-avatar" alt="">
+        <div class="comment-body">
+          <div class="d-flex justify-content-between gap-2">
+            <div class="comment-meta">
+              <strong>{{ comment.username || '匿名用户' }}</strong>
+              <span>{{ fromNow(comment.createTime) }}</span>
+            </div>
+            <button v-if="canDelete(comment)" class="btn btn-sm btn-link text-danger p-0" @click="emit('delete', comment.id)">删除</button>
+          </div>
+          <p class="comment-content">{{ comment.content }}</p>
+
+          <button v-if="store.isLoggedIn" class="btn btn-sm btn-link p-0 reply-btn" @click="startReply(comment)">
+            回复
+          </button>
+
+          <div v-if="replyingTo === comment.id" class="reply-editor mt-2">
+            <input v-model="replyContent" class="form-control form-control-sm" :placeholder="`回复 ${comment.username || '用户'}`" maxlength="500">
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <small class="text-muted">{{ replyContent.length }}/500</small>
+              <div>
+                <button class="btn btn-sm btn-outline-secondary me-1" @click="replyingTo = null">取消</button>
+                <button class="btn btn-sm btn-outline-primary" @click="submitReply(comment.id, comment.userId)" :disabled="!replyContent.trim() || submitting">发送</button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="comment.replies?.length" class="reply-list">
+            <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+              <div class="d-flex justify-content-between gap-2">
+                <div>
+                  <strong>{{ reply.username || '匿名用户' }}</strong>
+                  <span v-if="reply.replyToUsername" class="text-muted"> 回复 {{ reply.replyToUsername }}</span>
+                  <small class="text-muted ms-2">{{ fromNow(reply.createTime) }}</small>
+                </div>
+                <button v-if="canDelete(reply)" class="btn btn-sm btn-link text-danger p-0" @click="emit('delete', reply.id)">删除</button>
+              </div>
+              <div class="reply-content">{{ reply.content }}</div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div v-else class="text-muted small py-3 text-center">还没有评论</div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useUserStore } from '@/store/user'
 import { commentApi } from '@/api/comment'
-const props = defineProps({ articleId: { type: Number, required: true }, comments: { type: Array, default: () => [] } })
-const emit = defineEmits(['refresh'])
+import { fromNow } from '@/utils/format'
+
+const props = defineProps({
+  articleId: { type: Number, required: true },
+  articleAuthorId: { type: Number, default: null },
+  comments: { type: Array, default: () => [] }
+})
+const emit = defineEmits(['refresh', 'delete'])
 const store = useUserStore()
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="16" fill="#8B8682"/></svg>')
+const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><circle cx="18" cy="18" r="18" fill="#727D78"/></svg>')
 const newComment = ref('')
 const replyingTo = ref(null)
 const replyContent = ref('')
 const submitting = ref(false)
-function formatTime(t) { if (!t) return ''; return new Date(t).toLocaleDateString('zh-CN') }
+const totalCount = computed(() => props.comments.reduce((sum, comment) => sum + 1 + (comment.replies?.length || 0), 0))
+
+function canDelete(comment) {
+  return store.user?.id === comment.userId || store.user?.id === props.articleAuthorId
+}
+
+function startReply(comment) {
+  replyingTo.value = comment.id
+  replyContent.value = ''
+}
+
 async function submitComment() {
   if (!newComment.value.trim() || submitting.value) return
   submitting.value = true
-  try { await commentApi.create({ articleId: props.articleId, content: newComment.value }); newComment.value = ''; emit('refresh') } catch (e) { alert(e.message || '评论失败') }
-  finally { submitting.value = false }
+  try {
+    await commentApi.create({ articleId: props.articleId, content: newComment.value.trim() })
+    newComment.value = ''
+    emit('refresh')
+  } catch (e) {
+    alert(e.message || '评论失败')
+  } finally {
+    submitting.value = false
+  }
 }
+
 async function submitReply(parentId, replyToUserId) {
   if (!replyContent.value.trim() || submitting.value) return
   submitting.value = true
-  try { await commentApi.create({ articleId: props.articleId, content: replyContent.value, parentId, replyToUserId }); replyingTo.value = null; replyContent.value = ''; emit('refresh') } catch (e) { alert(e.message || '回复失败') }
-  finally { submitting.value = false }
+  try {
+    await commentApi.create({
+      articleId: props.articleId,
+      content: replyContent.value.trim(),
+      parentId,
+      replyToUserId
+    })
+    replyingTo.value = null
+    replyContent.value = ''
+    emit('refresh')
+  } catch (e) {
+    alert(e.message || '回复失败')
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
+
+<style scoped>
+.comment-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.comment-editor textarea {
+  resize: vertical;
+}
+.login-tip {
+  padding: .8rem 1rem;
+  border-radius: 8px;
+  background: var(--huixin-bg-soft);
+  color: var(--huixin-text-light);
+  font-size: .9rem;
+}
+.comment-list {
+  display: grid;
+  gap: 1.2rem;
+}
+.comment-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: .8rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--huixin-border);
+}
+.comment-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.comment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .45rem;
+  font-size: .88rem;
+}
+.comment-meta span {
+  color: var(--huixin-text-light);
+}
+.comment-content {
+  margin: .3rem 0 .2rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.reply-btn {
+  color: var(--huixin-primary);
+  text-decoration: none;
+}
+.reply-list {
+  display: grid;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+.reply-item {
+  padding: .65rem .8rem;
+  border-radius: 8px;
+  background: var(--huixin-bg-soft);
+  font-size: .9rem;
+}
+.reply-content {
+  margin-top: .25rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+</style>

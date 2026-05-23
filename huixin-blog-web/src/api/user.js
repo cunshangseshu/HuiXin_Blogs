@@ -6,5 +6,5 @@ export const userApi = {
   updateInfo: (data) => request.put('/user/info', data),
   changePassword: (data) => request.put('/user/password', data),
   updateAvatar: (avatarUrl) => request.post('/user/avatar', null, { params: { avatarUrl } }),
-  applyBlogger: (data) => request.post('/user/blogger/apply', data)
+  applyBlogger: (data) => request.post('/user/blogger/apply', typeof data === 'string' ? { applyReason: data } : data)
 }
