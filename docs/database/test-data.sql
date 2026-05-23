@@ -6,6 +6,17 @@
 
 USE `huixin_blog`;
 
+-- 清空测试数据（保留系统配置和分类/标签的种子数据）
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE `like_record`;
+TRUNCATE TABLE `article_stats`;
+TRUNCATE TABLE `comment`;
+TRUNCATE TABLE `article_tag`;
+TRUNCATE TABLE `article`;
+TRUNCATE TABLE `blogger_apply`;
+TRUNCATE TABLE `user`;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ============================================================
 -- 1. 用户数据（3个博主 + 5个普通用户）
 -- ============================================================
