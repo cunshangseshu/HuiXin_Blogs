@@ -13,7 +13,7 @@
       </div>
       <hr style="border-color:rgba(255,255,255,.15); margin: .6rem 0;">
       <div class="text-center small" style="color:rgba(255,255,255,.5);">
-        © 2026 慧芯博客 · 基于 Spring Cloud 微服务架构 · 中国风主题设计
+        © 2026 慧芯博客 · 广州慧芯智能网络科技有限公司
       </div>
     </div>
   </footer>

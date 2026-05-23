@@ -26,7 +26,7 @@
 
           <h6 class="mt-4 mb-2" style="color:var(--huixin-primary)">&#x1F465; 作者</h6>
           <p class="small">爱吃罗氏虾</p>
-          <p class="small text-muted">© 2026 慧芯博客 · 基于 Spring Cloud 微服务架构构建</p>
+          <p class="small text-muted">© 2026 慧芯博客 · 广州慧芯智能网络科技有限公司</p>
         </div>
       </div>
     </div>
