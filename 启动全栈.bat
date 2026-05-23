@@ -1,75 +1,73 @@
 @echo off
-chcp 65001 >nul
-title 慧芯博客 - 全栈启动
+title Huixin Blog - Startup
+setlocal
 
 cd /d "%~dp0"
+set ROOT=%cd%
+echo.
+echo   ==========================================
+echo     Huixin Blog - Starting...
+echo   ==========================================
+echo.
+echo   [Frontend] Hot reload (HMR) - no restart needed
+echo   [Backend]  Cold start - restart on code change
+echo.
 
-echo.
-echo   ╔══════════════════════════════════════════════════╗
-echo   ║       ✨ 慧芯博客 Huixin Blog                    ║
-echo   ║       全栈一键启动                                ║
-echo   ╚══════════════════════════════════════════════════╝
-echo.
-echo   🔥 前端（热启动 HMR）：改代码自动刷新，开一次管一天
-echo   ❄️  后端（冷启动）：改代码需要手动重启对应模块
-echo.
-
-REM ==================== 编译 ====================
-echo [1/3] 编译后端模块...
+REM ============ Compile ============
+echo [1/3] Compiling backend modules...
 call mvn compile -q
 if %errorlevel% neq 0 (
-    echo ❌ 编译失败，请检查代码
+    echo [FAIL] Compile failed. Check your code.
     pause
     exit /b 1
 )
-echo ✅ 编译通过
+echo [ OK ] Compile passed
 
-REM ==================== 前端 ====================
+REM ============ Frontend ============
 echo.
-echo [2/3] 启动前端（端口 3000）...
-if not exist "huixin-blog-web\node_modules\" (
-    echo 首次运行，安装前端依赖...
-    cd huixin-blog-web
+echo [2/3] Starting Frontend (port 3000)...
+if not exist "%ROOT%\huixin-blog-web\node_modules" (
+    echo First run - installing dependencies...
+    cd /d "%ROOT%\huixin-blog-web"
     call npm install
-    cd ..
 )
-start "慧芯博客-前端" cmd /c "cd /d %cd%\huixin-blog-web && title 慧芯博客-前端 :3000 && npm run dev"
+cd /d "%ROOT%\huixin-blog-web"
+start "Huixin-Frontend-3000" cmd /c "title Huixin Frontend :3000 && npm run dev"
 
-REM ==================== 后端 ====================
+REM ============ Backend ============
 echo.
-echo [3/3] 启动后端微服务（每个服务独立窗口）...
+echo [3/3] Starting Backend Services...
 
-REM 网关先启，业务模块后续自行启动
-start "慧芯博客-网关 :8080" cmd /c "cd /d %cd% && title 慧芯博客-网关 :8080 && mvn spring-boot:run -pl huixin-gateway -q"
+cd /d "%ROOT%"
+start "Huixin-Gateway-8080"   cmd /c "title Huixin Gateway :8080   && mvn spring-boot:run -pl huixin-gateway -q"
 timeout /t 8 >nul
 
-start "慧芯博客-认证 :8081" cmd /c "cd /d %cd% && title 慧芯博客-认证 :8081 && mvn spring-boot:run -pl huixin-auth -q"
+start "Huixin-Auth-8081"      cmd /c "title Huixin Auth :8081      && mvn spring-boot:run -pl huixin-auth -q"
 timeout /t 5 >nul
 
-start "慧芯博客-用户 :8082" cmd /c "cd /d %cd% && title 慧芯博客-用户 :8082 && mvn spring-boot:run -pl huixin-user -q"
+start "Huixin-User-8082"      cmd /c "title Huixin User :8082      && mvn spring-boot:run -pl huixin-user -q"
 timeout /t 3 >nul
 
-start "慧芯博客-文章 :8083" cmd /c "cd /d %cd% && title 慧芯博客-文章 :8083 && mvn spring-boot:run -pl huixin-article -q"
+start "Huixin-Article-8083"   cmd /c "title Huixin Article :8083   && mvn spring-boot:run -pl huixin-article -q"
 timeout /t 3 >nul
 
-start "慧芯博客-评论 :8084" cmd /c "cd /d %cd% && title 慧芯博客-评论 :8084 && mvn spring-boot:run -pl huixin-comment -q"
+start "Huixin-Comment-8084"   cmd /c "title Huixin Comment :8084   && mvn spring-boot:run -pl huixin-comment -q"
 timeout /t 3 >nul
 
-start "慧芯博客-搜索 :8085" cmd /c "cd /d %cd% && title 慧芯博客-搜索 :8085 && mvn spring-boot:run -pl huixin-search -q"
+start "Huixin-Search-8085"    cmd /c "title Huixin Search :8085    && mvn spring-boot:run -pl huixin-search -q"
 timeout /t 3 >nul
 
-start "慧芯博客-统计 :8086" cmd /c "cd /d %cd% && title 慧芯博客-统计 :8086 && mvn spring-boot:run -pl huixin-stats -q"
+start "Huixin-Stats-8086"     cmd /c "title Huixin Stats :8086     && mvn spring-boot:run -pl huixin-stats -q"
 
 echo.
-echo   ╔══════════════════════════════════════════════════╗
-echo   ║  启动完成！                                      ║
-echo   ║                                                  ║
-echo   ║  🌐 前端:  http://localhost:3000                  ║
-echo   ║  🛡️  网关:  http://localhost:8080                  ║
-echo   ║  📖 文档:  http://localhost:8081/doc.html          ║
-echo   ║                                                  ║
-echo   ║  🔥 前端热启动 — 改代码不用重启                   ║
-echo   ║  ❄️  后端冷启动 — 改代码需手动重启对应窗口         ║
-echo   ╚══════════════════════════════════════════════════╝
+echo   ==========================================
+echo     All services launched!
+echo.
+echo     Frontend : http://localhost:3000
+echo     Gateway  : http://localhost:8080
+echo     API Docs : http://localhost:8081/doc.html
+echo.
+echo     Close any CMD window to stop that service.
+echo   ==========================================
 echo.
 pause
