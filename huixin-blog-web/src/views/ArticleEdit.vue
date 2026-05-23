@@ -29,7 +29,15 @@
             </div>
           </div>
           <div class="mb-3">
-            <textarea v-model="form.content" class="form-control" rows="15" placeholder="文章正文（支持Markdown）" required></textarea>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label mb-0">文章正文（Markdown）</label>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary" :class="{ active: tab==='write' }" @click="tab='write'">&#x270F; 编辑</button>
+                <button type="button" class="btn btn-outline-secondary" :class="{ active: tab==='preview' }" @click="tab='preview'">&#x1F441; 预览</button>
+              </div>
+            </div>
+            <textarea v-show="tab==='write'" v-model="form.content" class="form-control font-monospace" rows="16" placeholder="支持 Markdown 语法：&#10;# 一级标题&#10;## 二级标题&#10;**加粗** *斜体* &#10;- 列表项&#10;[链接](url)&#10;![图片](url)&#10;> 引用" required></textarea>
+            <div v-show="tab==='preview'" class="border rounded p-3 bg-white" style="min-height:300px; max-height:500px; overflow-y:auto;" v-html="previewHtml"></div>
           </div>
           <div class="mb-3">
             <input v-model="form.coverImageUrl" class="form-control" placeholder="封面图片URL（可选）">
@@ -58,10 +66,31 @@ import { useUserStore } from '@/store/user'
 const route = useRoute(); const router = useRouter()
 const store = useUserStore()
 const isEdit = computed(() => !!route.params.id)
+const tab = ref('write')
 const form = reactive({ title: '', categoryId: '', content: '', summary: '', coverImageUrl: '' })
 const categories = ref([]); const allTags = ref([]); const selectedTags = ref([])
 const submitting = ref(false)
 const availableTags = computed(() => allTags.value.filter(t => !selectedTags.value.find(st => st.id === t.id)))
+
+// 简单的 Markdown → HTML 转换（预览用）
+const previewHtml = computed(() => {
+  let html = form.content || ''
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  html = html.replace(/^### (.+)$/gm, '<h6>$1</h6>')
+  html = html.replace(/^## (.+)$/gm, '<h5>$1</h5>')
+  html = html.replace(/^# (.+)$/gm, '<h4>$1</h4>')
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  html = html.replace(/`(.+?)`/g, '<code style="background:#f0ede8;padding:1px 4px;border-radius:3px;">$1</code>')
+  html = html.replace(/!\[(.*?)\]\((.+?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:6px;">')
+  html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
+  html = html.replace(/^> (.+)$/gm, '<blockquote style="border-left:3px solid var(--huixin-primary);padding-left:.8rem;color:var(--huixin-text-light);">$1</blockquote>')
+  html = html.replace(/^- (.+)$/gm, '<li>$1</li>')
+  html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+  html = html.replace(/\n\n/g, '</p><p>')
+  html = '<p>' + html + '</p>'
+  return html
+})
 
 function addTag(t) { selectedTags.value.push(t) }
 function removeTag(id) { selectedTags.value = selectedTags.value.filter(t => t.id !== id) }
