@@ -49,7 +49,7 @@ import { computed } from 'vue'
 import { clampText, compactNumber, formatDateTime, fromNow } from '@/utils/format'
 
 const props = defineProps({ article: { type: Object, required: true } })
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44"><circle cx="22" cy="22" r="22" fill="#727D78"/></svg>')
+import { DEFAULT_AVATAR as defaultAvatar } from '@/utils/constants'
 const summary = computed(() => clampText(props.article.summary || props.article.title, 150))
 </script>
 

@@ -148,7 +148,7 @@ const applyReason = ref('')
 const savingProfile = ref(false)
 const passwordSaving = ref(false)
 const applySaving = ref(false)
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72"><circle cx="36" cy="36" r="36" fill="#727D78"/></svg>')
+import { DEFAULT_AVATAR as defaultAvatar } from '@/utils/constants'
 
 function setTab(tab) {
   router.replace({ query: { ...route.query, tab } })

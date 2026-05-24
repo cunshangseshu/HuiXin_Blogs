@@ -83,10 +83,9 @@ const likeLoading = ref(false)
 const loading = ref(true)
 const progress = ref(0)
 const articleBody = ref(null)
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="14" fill="#727D78"/></svg>')
+import { DEFAULT_AVATAR as defaultAvatar } from '@/utils/constants'
 
-import DOMPurify from 'dompurify'
-const renderedContent = computed(() => DOMPurify.sanitize(article.value?.contentHtml || markdownToHtml(article.value?.content || '')))
+const renderedContent = computed(() => article.value?.contentHtml || markdownToHtml(article.value?.content || ''))
 const canEdit = computed(() => store.user?.id && article.value?.authorId === store.user.id)
 
 function onScroll() {

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.Map;
  *
  * @author 爱吃罗氏虾
  */
+@Slf4j
 @Tag(name = "文章管理", description = "文章发布、编辑、删除、查询等接口")
 @RestController
 @RequestMapping("/api/article")
@@ -60,6 +62,7 @@ public class ArticleController {
     @Operation(summary = "获取文章详情", description = "获取文章正文、作者信息、标签等完整信息")
     @GetMapping("/{id}")
     public ResultVO<Object> getArticleDetail(@PathVariable Long id) {
+        log.info("进来了喔");
         return ResultVO.success(articleService.getArticleDetail(id));
     }
 

@@ -81,7 +81,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['refresh', 'delete'])
 const store = useUserStore()
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><circle cx="18" cy="18" r="18" fill="#727D78"/></svg>')
+import { DEFAULT_AVATAR as defaultAvatar } from '@/utils/constants'
 const newComment = ref('')
 const replyingTo = ref(null)
 const replyContent = ref('')

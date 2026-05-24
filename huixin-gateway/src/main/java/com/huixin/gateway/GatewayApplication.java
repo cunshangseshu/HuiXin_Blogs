@@ -2,6 +2,7 @@ package com.huixin.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
@@ -24,7 +25,7 @@ public class GatewayApplication {
         SpringApplication.run(GatewayApplication.class, args);
         System.out.println("====================================");
         System.out.println("  慧芯博客-网关服务 启动成功！");
-        System.out.println("  Gateway: http://localhost:8080");
+        System.out.println("  Gateway: http://localhost:8888");
         System.out.println("====================================");
     }
 

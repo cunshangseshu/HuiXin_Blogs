@@ -1,9 +1,14 @@
 server:
-  port: 8080
+  port: 8888
 
 spring:
-  cloud:
-    gateway:
+  application:
+    name: huixin-gateway
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: huixin-blog
+        group: HUIXIN_GROUP
       globalcors:
         cors-configurations:
           '[/**]':
@@ -42,3 +47,6 @@ logging:
   level:
     com.huixin.gateway: DEBUG
     org.springframework.cloud.gateway: INFO
+
+
+

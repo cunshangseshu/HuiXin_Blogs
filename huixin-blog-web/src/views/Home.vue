@@ -75,17 +75,14 @@ import EmptyState from '@/components/EmptyState.vue'
 import Pagination from '@/components/Pagination.vue'
 import TagCloud from '@/components/TagCloud.vue'
 import HotSidebar from '@/components/HotSidebar.vue'
-import { articleApi } from '@/api/article'
+import { articleApi, categoryApi } from '@/api/article'
 import { useUserStore } from '@/store/user'
-import { useCategoryStore } from '@/store/category'
 
 const route = useRoute()
 const router = useRouter()
 const store = useUserStore()
-const categoryStore = useCategoryStore()
-
 const articles = ref([])
-const categories = computed(() => categoryStore.categories)
+const categories = ref([])
 const page = ref(1)
 const pages = ref(1)
 const loading = ref(true)
@@ -137,7 +134,10 @@ function changeSort(sort) {
 }
 
 onMounted(async () => {
-  categoryStore.fetchCategories()
+  try {
+    const res = await categoryApi.list()
+    if (res.code === 200) categories.value = res.data || []
+  } catch (e) {}
   loadArticles()
 })
 

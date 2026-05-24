@@ -50,7 +50,7 @@ const page = ref(1)
 const pages = ref(1)
 const total = ref(0)
 const loading = ref(true)
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72"><circle cx="36" cy="36" r="36" fill="#727D78"/></svg>')
+import { DEFAULT_AVATAR as defaultAvatar } from '@/utils/constants'
 
 async function load(p = 1) {
   loading.value = true

@@ -1,4 +1,3 @@
-import { computed } from "vue"
 <template>
   <nav class="navbar navbar-expand-lg navbar-huixin sticky-top">
     <div class="container-fluid">
@@ -83,31 +82,28 @@ import { computed } from "vue"
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { useCategoryStore } from '@/store/category'
 import { authApi } from '@/api/auth'
-import { debounce } from '@/utils/debounce'
+import { categoryApi } from '@/api/article'
 
 const router = useRouter()
 const route = useRoute()
 const store = useUserStore()
-const categoryStore = useCategoryStore()
-
 const keyword = ref(route.query.keyword || '')
-const categories = computed(() => categoryStore.categories)
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#727D78"/></svg>')
+const categories = ref([])
+import { DEFAULT_AVATAR as defaultAvatar } from '@/utils/constants'
 
 watch(() => route.query.keyword, value => {
   keyword.value = value || ''
 })
 
-const doSearch = debounce(() => {
+function doSearch() {
   const value = keyword.value.trim()
   if (value) {
     router.push({ name: 'Search', query: { keyword: value } })
   } else {
     router.push({ name: 'Search' })
   }
-}, 300)
+}
 
 async function logout() {
   try {
@@ -122,7 +118,10 @@ async function logout() {
 }
 
 onMounted(async () => {
-  categoryStore.fetchCategories()
+  try {
+    const res = await categoryApi.list()
+    if (res.code === 200) categories.value = res.data || []
+  } catch (e) {}
 })
 </script>
 
