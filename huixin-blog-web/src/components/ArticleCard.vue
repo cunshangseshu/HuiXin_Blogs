@@ -58,6 +58,8 @@ const summary = computed(() => clampText(props.article.summary || props.article.
   border-left: 3px solid var(--huixin-primary);
 }
 .article-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--huixin-shadow-md);
   border-left-color: var(--huixin-accent);
   background: linear-gradient(90deg, rgba(47,111,102,0.025) 0%, rgba(255,255,255,.95) 18%);
 }
@@ -83,6 +85,7 @@ const summary = computed(() => clampText(props.article.summary || props.article.
   flex: 1 1 auto;
 }
 .article-title {
+  word-break: break-all;
   margin: 0 0 .35rem;
   color: var(--huixin-text);
   font-size: 1.05rem;
@@ -91,6 +94,7 @@ const summary = computed(() => clampText(props.article.summary || props.article.
   transition: color .2s;
 }
 .article-card:hover .article-title {
+  word-break: break-all;
   color: var(--huixin-primary);
 }
 .article-summary {

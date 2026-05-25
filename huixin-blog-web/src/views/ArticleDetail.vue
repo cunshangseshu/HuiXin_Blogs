@@ -203,6 +203,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   background: var(--huixin-bg-soft);
 }
 .article-title {
+  word-break: break-all;
   margin-bottom: .75rem;
   font-size: clamp(1.65rem, 3vw, 2.35rem);
   line-height: 1.28;
