@@ -4,15 +4,17 @@ server:
 spring:
   application:
     name: huixin-gateway
+  cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
         namespace: huixin-blog
         group: HUIXIN_GROUP
+    gateway:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOriginPatterns: "http://localhost:3000,http://127.0.0.1:3000"
+            allowedOriginPatterns: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
@@ -22,31 +24,40 @@ spring:
           uri: lb://huixin-auth
           predicates:
             - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
         - id: huixin-user
           uri: lb://huixin-user
           predicates:
             - Path=/api/user/**
+          filters:
+            - StripPrefix=1
         - id: huixin-article
           uri: lb://huixin-article
           predicates:
             - Path=/api/article/**,/api/category/**,/api/tag/**
+          filters:
+            - StripPrefix=1
         - id: huixin-comment
           uri: lb://huixin-comment
           predicates:
             - Path=/api/comment/**
+          filters:
+            - StripPrefix=1
         - id: huixin-search
           uri: lb://huixin-search
           predicates:
             - Path=/api/search/**
+          filters:
+            - StripPrefix=1
         - id: huixin-stats
           uri: lb://huixin-stats
           predicates:
             - Path=/api/stats/**
+          filters:
+            - StripPrefix=1
 
 logging:
   level:
     com.huixin.gateway: DEBUG
     org.springframework.cloud.gateway: INFO
-
-
-
