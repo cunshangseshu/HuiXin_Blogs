@@ -1,157 +1,133 @@
-/* ============================================================
-   慧芯博客 - 全局样式（中国风主题 v2）
-   色系：竹青/胭脂/鸦青/月白/琉璃黄
-   ============================================================ */
+/* --- 慧芯博客 (Huixin Blog) 全局核心样式簿 v3 --- */
+/* 注：整合了 Modern Chinese UI (国风色彩) 与 现代留白排版 */
 
 :root {
-  --huixin-primary: #2F6F66;
-  --huixin-primary-dark: #244D49;
-  --huixin-accent: #B94A48;
-  --huixin-gold: #B78B38;
-  --huixin-bg: #F6F8F7;
-  --huixin-bg-soft: #EEF4F1;
-  --huixin-card-bg: #FFFFFF;
-  --huixin-text: #27322F;
-  --huixin-text-light: #727D78;
-  --huixin-border: #DDE6E1;
-  --huixin-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  --huixin-shadow-hover: 0 8px 30px rgba(0,0,0,0.1);
-  --huixin-radius: 8px;
-  --huixin-ink: #1F2A27;
-  --font-calligraphy: "STKaiti", "KaiTi", "楷体", serif;
+  /* 国风基础色彩调色板 */
+  --huixin-primary: #1F3B3E;      /* 深黛青 - 主色/大标题 */
+  --huixin-primary-light: #4A6E72; /* 浅黛青 - 次要按钮/图标 */
+  --huixin-accent: #C35655;       /* 朱砂红 - 强调色/消息/点赞 */
+  --huixin-gold: #D4A86A;         /* 雅致金 - VIP/原创标识/高亮 */
+  --huixin-bg: #F9F9F8;           /* 宣纸白 - 全局底色 */
+  --huixin-bg-soft: #F2F2EF;      /* 浅灰白 - 卡片hover/次要背景 */
+  
+  /* 文本层次阶梯 */
+  --huixin-text: #2C2C2B;         /* 玄调黑 - 正文主要文字，降低纯黑的刺眼感 */
+  --huixin-text-light: #7E7E7D;   /* 烟灰色 - 时间/副标题/辅助文字 */
+  --huixin-border: #E8E8E6;       /* 浅边框线条 */
+
+  /* 阴影与特效 */
+  --huixin-shadow-sm: 0 2px 8px rgba(31, 59, 62, 0.04);
+  --huixin-shadow-md: 0 8px 24px rgba(31, 59, 62, 0.08);
+  --huixin-transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* 字体栈：优先系统默认中文字体，平滑降级 */
+  --font-base: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", Tahoma, Simsun, sans-serif;
+  --font-calligraphy: "STKaiti", "KaiTi", "楷体", serif; /* 局部行气、Logo、引言使用 */
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
+/* =========================================
+   全局重置与滚动条美化
+========================================= */
 body {
-  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-  color: var(--huixin-text);
   background-color: var(--huixin-bg);
-  background-image:
-    linear-gradient(180deg, rgba(255,255,255,.72), rgba(246,248,247,.9)),
-    radial-gradient(ellipse at 14% 12%, rgba(47,111,102,0.055) 0%, transparent 56%),
-    radial-gradient(ellipse at 88% 74%, rgba(185,74,72,0.045) 0%, transparent 52%),
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><path d='M0 100 Q100 80 200 120 T420 80' fill='none' stroke='%232F6F66' stroke-width='1' opacity='0.035'/><path d='M0 250 Q150 220 300 260 T420 230' fill='none' stroke='%23B78B38' stroke-width='0.5' opacity='0.035'/></svg>");
-  background-attachment: fixed;
-  line-height: 1.7;
+  color: var(--huixin-text);
+  font-family: var(--font-base);
+  line-height: 1.75; /* 增加行高，提升中文大段落阅读时的呼吸感 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a { color: var(--huixin-primary); text-decoration: none; transition: color .2s; }
-a:hover { color: var(--huixin-accent); }
+/* 自定义纤细优雅的滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(31, 59, 62, 0.15);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(31, 59, 62, 0.35);
+}
 
-/* === 水墨动画 === */
-@keyframes inkSpread {
-  0% { clip-path: circle(0% at 50% 50%); opacity: 1; }
-  100% { clip-path: circle(100% at 50% 50%); opacity: 0.3; }
-}
-@keyframes floatUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes brushStroke {
-  from { width: 0; }
-  to { width: 100%; }
-}
-@keyframes waveFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.animate-float { animation: floatUp .6s ease-out; }
+/* =========================================
+   组件通用优化 (Card / Button / Text)
+========================================= */
 
-/* === 卡片 === */
+/* 让 Bootstrap 的卡片组件更轻盈 */
 .card {
+  background-color: #FFFFFF;
   border: 1px solid var(--huixin-border);
-  border-radius: var(--huixin-radius);
-  box-shadow: var(--huixin-shadow);
-  background: var(--huixin-card-bg);
-  transition: transform .2s, box-shadow .2s;
+  border-radius: 12px;
+  box-shadow: var(--huixin-shadow-sm);
+  transition: var(--huixin-transition);
 }
-.card:hover { box-shadow: var(--huixin-shadow-hover); }
 
-/* === 按钮 === */
+/* 按钮覆盖与国风统一 */
 .btn-primary {
-  background: linear-gradient(135deg, var(--huixin-primary), var(--huixin-primary-dark));
-  border: none;
-  border-radius: 6px;
-  transition: all .2s;
+  background-color: var(--huixin-primary);
+  border-color: var(--huixin-primary);
+  color: #FFFFFF;
 }
-.btn-primary:hover {
-  background: linear-gradient(135deg, var(--huixin-primary-dark), var(--huixin-primary));
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(47,111,102,0.26);
+.btn-primary:hover, .btn-primary:focus {
+  background-color: #15292b;
+  border-color: #15292b;
+  box-shadow: 0 4px 12px rgba(31, 59, 62, 0.2);
 }
+
 .btn-outline-primary {
   color: var(--huixin-primary);
-  border: 1px solid var(--huixin-primary);
-  border-radius: 6px;
+  border-color: var(--huixin-primary);
 }
 .btn-outline-primary:hover {
-  background: var(--huixin-primary);
-  color: #fff;
+  background-color: var(--huixin-primary);
+  color: #FFFFFF;
 }
+
 .btn-accent {
-  background: var(--huixin-accent);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
+  background-color: var(--huixin-accent);
+  border-color: var(--huixin-accent);
+  color: #FFFFFF;
 }
-.btn-accent:hover { background: #a03030; color: #fff; }
-
-/* === 标签 === */
-.tag-badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: .8rem;
-  color: #fff;
-  margin: 0 4px 4px 0;
-  transition: transform .15s;
+.btn-accent:hover {
+  background-color: #A34544;
+  border-color: #A34544;
 }
-.tag-badge:hover { transform: scale(1.08); }
 
-/* === 导航栏 === */
+/* 防止长文本溢出破坏布局的通用类 */
+.text-truncate-multi {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* =========================================
+   NavBar 导航栏全局穿透层
+========================================= */
 .navbar-huixin {
-  background: linear-gradient(135deg, #1F2A27 0%, var(--huixin-primary-dark) 48%, var(--huixin-primary) 100%);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-  border-bottom: 2px solid var(--huixin-gold);
-  position: relative;
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--huixin-border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
 }
-.navbar-huixin::after {
-  content: '';
-  position: absolute; bottom: -2px; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--huixin-gold), transparent);
+.navbar-huixin .nav-link {
+  color: var(--huixin-text) !important;
+  font-weight: 500;
+  transition: var(--huixin-transition);
 }
-.navbar-huixin .navbar-brand {
-  color: #fff !important;
-  font-family: var(--font-calligraphy);
-  font-size: 1.4rem;
-  letter-spacing: 3px;
-}
-.navbar-huixin .nav-link { color: rgba(255,255,255,.85) !important; transition: color .2s; }
-.navbar-huixin .nav-link:hover { color: var(--huixin-gold) !important; }
-
-/* === 分页 === */
-.pagination .page-link {
-  color: var(--huixin-primary);
-  border-color: var(--huixin-border);
-  border-radius: 6px;
-  margin: 0 2px;
-}
-.pagination .page-link:hover { background: var(--huixin-bg); }
-.pagination .active .page-link {
-  background: var(--huixin-primary);
-  border-color: var(--huixin-primary);
-  color: #fff;
+.navbar-huixin .nav-link:hover {
+  color: var(--huixin-primary) !important;
 }
 
-/* === 滚动条 === */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--huixin-bg); }
-::-webkit-scrollbar-thumb { background: var(--huixin-primary); border-radius: 3px; }
-
-/* === 响应式 === */
-@media (max-width: 768px) {
-  .container-fluid { padding: 0 4px !important; }
-  .card { border-radius: 6px; }
+/* 修复手机端顶部下拉闪烁与留白挤压 */
+@media (max-width: 767.98px) {
+  body {
+    font-size: 15px; /* 移动端字号微调 */
+  }
+  .card {
+    border-radius: 8px; /* 小屏下的直角感稍微强化 */
+  }
 }
