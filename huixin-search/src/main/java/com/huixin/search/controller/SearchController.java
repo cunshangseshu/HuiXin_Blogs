@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "搜索服务", description = "全文搜索、热门搜索词等接口")
 @RestController
-@RequestMapping("/api/search")
+@RequestMapping("/search")
 public class SearchController {
 
     @Resource
@@ -23,9 +23,9 @@ public class SearchController {
     @Operation(summary = "搜索文章", description = "按关键词搜索文章标题和摘要")
     @GetMapping
     public ResultVO<Object> search(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam("keyword") String keyword,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         if (keyword == null || keyword.isBlank()) {
             return ResultVO.error(400, "请输入搜索关键词");
         }
@@ -35,7 +35,7 @@ public class SearchController {
     @Operation(summary = "热门搜索词", description = "获取搜索频次最高的关键词（Redis ZSet排行）")
     @GetMapping("/hot-keywords")
     public ResultVO<Object> getHotKeywords(
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
         return ResultVO.success(searchService.getHotKeywords(limit));
     }
 

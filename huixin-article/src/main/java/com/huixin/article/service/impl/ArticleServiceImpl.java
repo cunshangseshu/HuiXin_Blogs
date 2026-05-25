@@ -56,7 +56,18 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createArticle(Long authorId, ArticleCreateDTO dto) {
-        // 1. 验证分类存在
+        // 0. Fail-Fast 校验：反向检查用户角色，拦截一切越权发文
+        ResultVO<java.util.Map<String, Object>> userResult = userFeignClient.getUserPublicInfo(authorId);
+        if (userResult.getCode() != 200 || userResult.getData() == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "无法获取操作者身份信息");
+        }
+        java.util.Map<String, Object> dataMap = cn.hutool.core.bean.BeanUtil.beanToMap(userResult.getData());
+        Integer roleType = (Integer) dataMap.get("roleType");
+        if (roleType == null || roleType < 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "很抱歉，仅限博主或管理员可执行此操作！");
+        }
+
+// 1. 验证分类存在
         Category category = categoryMapper.selectById(dto.getCategoryId());
         if (category == null) {
             throw new BusinessException(ResultCode.CATEGORY_NOT_FOUND);
@@ -98,7 +109,18 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateArticle(Long articleId, Long authorId, ArticleCreateDTO dto) {
-        Article article = articleMapper.selectById(articleId);
+        // 0. Fail-Fast 校验：反向检查用户角色，拦截一切越权发文
+        ResultVO<java.util.Map<String, Object>> userResult = userFeignClient.getUserPublicInfo(authorId);
+        if (userResult.getCode() != 200 || userResult.getData() == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED, "无法获取操作者身份信息");
+        }
+        java.util.Map<String, Object> dataMap = cn.hutool.core.bean.BeanUtil.beanToMap(userResult.getData());
+        Integer roleType = (Integer) dataMap.get("roleType");
+        if (roleType == null || roleType < 1) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "很抱歉，仅限博主或管理员可执行此操作！");
+        }
+
+Article article = articleMapper.selectById(articleId);
         if (article == null) {
             throw new BusinessException(ResultCode.ARTICLE_NOT_FOUND);
         }
@@ -394,4 +416,36 @@ public class ArticleServiceImpl implements ArticleService {
                     .build();
         }).collect(Collectors.toList());
     }
+
+    /* ==================== 内部Feign调用方法 ==================== */
+
+    @Override
+    public boolean existsById(Long id) {
+        if (id == null) return false;
+        return articleMapper.selectById(id) != null;
+    }
+
+    @Override
+    public Map<String, Object> getArticleBasic(Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "文章不存在");
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", article.getId());
+        result.put("authorId", article.getAuthorId());
+        result.put("title", article.getTitle());
+        return result;
+    }
+
+    @Override
+    public void incrementCommentCount(Long id, int delta) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "文章不存在");
+        }
+        article.setCommentCount(Math.max(0, article.getCommentCount() + delta));
+        articleMapper.updateById(article);
+    }
+
 }

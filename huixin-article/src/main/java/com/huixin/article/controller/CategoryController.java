@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "分类管理", description = "文章分类查询接口")
 @RestController
-@RequestMapping("/api/category")
+@RequestMapping("/category")
 public class CategoryController {
 
     @Resource
@@ -28,7 +28,7 @@ public class CategoryController {
 
     @Operation(summary = "获取分类详情")
     @GetMapping("/{id}")
-    public ResultVO<Object> getById(@PathVariable Long id) {
+    public ResultVO<Object> getById(@PathVariable("id") Long id) {
         return ResultVO.success(categoryService.getById(id));
     }
 

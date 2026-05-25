@@ -7,6 +7,8 @@ import com.huixin.article.vo.ArticleListVO;
 import com.huixin.article.vo.ArticleVO;
 import com.huixin.common.vo.PageVO;
 
+import java.util.Map;
+
 /**
  * 文章服务接口
  *
@@ -65,5 +67,20 @@ public interface ArticleService {
      * @return 分页结果
      */
     PageVO<ArticleListVO> listUserArticles(Long authorId, Integer page, Integer size);
+
+    /**
+     * 验证文章是否存在（轻量级检查，供Feign内部调用）
+     */
+    boolean existsById(Long id);
+
+    /**
+     * 获取文章基本信息（供Feign内部调用，用于评论权限校验）
+     */
+    Map<String, Object> getArticleBasic(Long id);
+
+    /**
+     * 评论数增减（供Feign内部调用）
+     */
+    void incrementCommentCount(Long id, int delta);
 
 }

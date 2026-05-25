@@ -264,3 +264,32 @@ INSERT INTO `tag` (`tag_name`, `tag_color`) VALUES
 -- 3. 阅读量和点赞数使用 Redis 缓存实时更新，定时同步到 MySQL
 --    避免高并发下频繁写库
 -- ============================================================
+
+
+-- 利用原有的 blogger_apply 表，不用新建申请表。这完美契合你原有的结构！
+
+-- 3. 创建全局站内信通知表 (因为你之前的 init.sql 确实没有这个)
+CREATE TABLE IF NOT EXISTS `sys_notification` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '通知ID',
+  `user_id` BIGINT NOT NULL COMMENT '接收者ID',
+  `title` VARCHAR(100) NOT NULL COMMENT '消息标题',
+  `content` TEXT NOT NULL COMMENT '消息正文',
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否已读: 0-未读, 1-已读',
+  `type` VARCHAR(20) NOT NULL DEFAULT 'SYSTEM' COMMENT '类型: SYSTEM(系统通知), AUDIT(审批通知), WARN(违规警告)',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_read` (`user_id`, `is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户站内通知表';
+
+-- 4. 创建 QPS / API 访问打点埋点统计表 (为未来挂载 MQ 做基建)
+CREATE TABLE IF NOT EXISTS `sys_api_metrics` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+  `api_path` VARCHAR(255) NOT NULL COMMENT 'API访问路径',
+  `method` VARCHAR(10) NOT NULL COMMENT '请求方式',
+  `response_time_ms` INT NOT NULL COMMENT '接口耗时(毫秒)',
+  `client_ip` VARCHAR(50) DEFAULT NULL COMMENT '客户端IP',
+  `status_code` INT NOT NULL COMMENT 'HTTP状态码',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发生时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_api_path` (`api_path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='QPS及接口监控打点表';

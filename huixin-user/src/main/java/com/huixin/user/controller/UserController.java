@@ -15,6 +15,8 @@ import jakarta.validation.constraints.Pattern;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 用户管理控制器
  * <p>
@@ -27,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "用户管理", description = "用户个人信息、密码、头像、博主申请等接口")
 @Validated
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 public class UserController {
 
     @Resource
@@ -50,6 +52,24 @@ public class UserController {
     }
 
     /**
+     * 批量获取用户公开信息
+     * <p>
+     * 供其他微服务（文章、评论等）内部调用，用于批量填充作者信息。
+     * 注意：此接口为内部接口，生产环境应在 Gateway 白名单或内网隔离。
+     * </p>
+     *
+     * @param ids 用户ID列表（逗号分隔）
+     * @return 用户公开信息列表
+     */
+    @Operation(summary = "批量获取用户公开信息", description = "根据用户ID列表批量获取用户公开信息，供内部微服务调用")
+    @GetMapping("/batch")
+    public ResultVO<Object> getUsersByIds(
+            @Parameter(description = "用户ID列表", required = true, example = "1,2,3")
+            @RequestParam(value = "ids") List<Long> ids) {
+        return ResultVO.success(userService.getUsersByIds(ids));
+    }
+
+    /**
      * 获取指定用户的公开信息
      * <p>
      * 用于查看文章作者信息、评论者信息等场景。
@@ -63,7 +83,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResultVO<Object> getUserPublicInfo(
             @Parameter(description = "用户ID", required = true, example = "1")
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         return ResultVO.success(userService.getUserPublicInfo(id));
     }
 
@@ -129,7 +149,7 @@ public class UserController {
             @Parameter(description = "头像URL", required = true)
             @NotBlank(message = "头像URL不能为空")
             @Pattern(regexp = "^(https?://|data:image/).+", message = "头像URL格式不正确")
-            @RequestParam String avatarUrl) {
+            @RequestParam("avatarUrl") String avatarUrl) {
         userService.updateAvatar(userId, avatarUrl);
         return ResultVO.success("头像更新成功");
     }

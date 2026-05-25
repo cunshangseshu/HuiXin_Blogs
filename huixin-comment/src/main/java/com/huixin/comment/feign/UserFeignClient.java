@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @author 爱吃罗氏虾
  */
-@FeignClient(name = "huixin-user", path = "/api/user")
+@FeignClient(name = "huixin-user", path = "/user")
 public interface UserFeignClient {
 
     @GetMapping("/{id}")

@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "文章管理", description = "文章发布、编辑、删除、查询等接口")
 @RestController
-@RequestMapping("/api/article")
+@RequestMapping("/article")
 public class ArticleController {
 
     @Resource
@@ -43,7 +43,7 @@ public class ArticleController {
     public ResultVO<Void> updateArticle(
             @Parameter(description = "用户ID", required = true, hidden = true)
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ArticleCreateDTO dto) {
         articleService.updateArticle(id, userId, dto);
         return ResultVO.success("文章更新成功");
@@ -54,14 +54,14 @@ public class ArticleController {
     public ResultVO<Void> deleteArticle(
             @Parameter(description = "用户ID", required = true, hidden = true)
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         articleService.deleteArticle(id, userId);
         return ResultVO.success("文章已删除");
     }
 
     @Operation(summary = "获取文章详情", description = "获取文章正文、作者信息、标签等完整信息")
     @GetMapping("/{id}")
-    public ResultVO<Object> getArticleDetail(@PathVariable Long id) {
+    public ResultVO<Object> getArticleDetail(@PathVariable("id") Long id) {
         log.info("进来了喔");
         return ResultVO.success(articleService.getArticleDetail(id));
     }
@@ -75,10 +75,33 @@ public class ArticleController {
     @Operation(summary = "用户文章列表", description = "查询指定用户发布的文章")
     @GetMapping("/user/{authorId}")
     public ResultVO<Object> listUserArticles(
-            @PathVariable Long authorId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @PathVariable("authorId") Long authorId,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         return ResultVO.success(articleService.listUserArticles(authorId, page, size));
+    }
+
+    /* ==================== 内部Feign调用接口 ==================== */
+
+    @Operation(summary = "验证文章是否存在", description = "轻量级检查，供评论服务等内部调用")
+    @GetMapping("/{id}/exists")
+    public ResultVO<Boolean> checkArticleExists(@PathVariable("id") Long id) {
+        return ResultVO.success(articleService.existsById(id));
+    }
+
+    @Operation(summary = "获取文章基本信息", description = "获取文章authorId等核心字段，供评论服务权限校验")
+    @GetMapping("/{id}/basic")
+    public ResultVO<Map<String, Object>> getArticleBasic(@PathVariable("id") Long id) {
+        return ResultVO.success(articleService.getArticleBasic(id));
+    }
+
+    @Operation(summary = "评论数增减", description = "文章评论数+1或-1，供评论服务内部调用")
+    @PostMapping("/{id}/comment-count")
+    public ResultVO<Void> incrementCommentCount(
+            @PathVariable("id") Long id,
+            @RequestParam(value = "delta") int delta) {
+        articleService.incrementCommentCount(id, delta);
+        return ResultVO.success();
     }
 
 }

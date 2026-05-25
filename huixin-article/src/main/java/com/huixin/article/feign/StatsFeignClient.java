@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * @author 爱吃罗氏虾
  */
-@FeignClient(name = "huixin-stats", path = "/api/stats")
+@FeignClient(name = "huixin-stats", path = "/stats")
 public interface StatsFeignClient {
 
     /**

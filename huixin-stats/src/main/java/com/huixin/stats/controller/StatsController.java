@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "数据统计", description = "文章阅读量、点赞、热门排行等统计接口")
 @RestController
-@RequestMapping("/api/stats")
+@RequestMapping("/stats")
 public class StatsController {
 
     @Resource
@@ -55,7 +55,7 @@ public class StatsController {
     @Operation(summary = "热门排行", description = "获取热门文章排行（Redis ZSet倒序）")
     @GetMapping("/hot")
     public ResultVO<Object> getHotArticles(
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
         return ResultVO.success(statsService.getHotArticles(limit));
     }
 

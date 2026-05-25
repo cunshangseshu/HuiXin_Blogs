@@ -21,6 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
@@ -82,6 +86,31 @@ public class UserServiceImpl implements UserService {
                 .roleType(user.getRoleType())
                 .createTime(user.getCreateTime())
                 .build();
+    }
+
+    /**
+     * 批量获取用户公开信息（供内部微服务调用）
+     * <p>
+     * 用于文章列表、评论列表等场景批量填充作者信息，避免 N+1 查询。
+     * </p>
+     */
+    @Override
+    public List<UserVO> getUsersByIds(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<User> users = userMapper.selectBatchIds(userIds);
+        return users.stream()
+                .map(user -> UserVO.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .nickname(user.getNickname())
+                        .avatarUrl(user.getAvatarUrl())
+                        .bio(user.getBio())
+                        .roleType(user.getRoleType())
+                        .createTime(user.getCreateTime())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     /* ==================== 更新用户信息 ==================== */

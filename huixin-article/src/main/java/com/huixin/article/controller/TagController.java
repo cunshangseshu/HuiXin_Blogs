@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "标签管理", description = "文章标签查询接口")
 @RestController
-@RequestMapping("/api/tag")
+@RequestMapping("/tag")
 public class TagController {
 
     @Resource
@@ -28,7 +28,7 @@ public class TagController {
 
     @Operation(summary = "获取标签详情")
     @GetMapping("/{id}")
-    public ResultVO<Object> getById(@PathVariable Long id) {
+    public ResultVO<Object> getById(@PathVariable("id") Long id) {
         return ResultVO.success(tagService.getById(id));
     }
 

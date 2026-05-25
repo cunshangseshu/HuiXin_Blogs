@@ -5,6 +5,8 @@ import com.huixin.user.dto.ChangePasswordDTO;
 import com.huixin.user.dto.UpdateUserDTO;
 import com.huixin.user.vo.UserVO;
 
+import java.util.List;
+
 /**
  * 用户服务接口
  * <p>
@@ -31,6 +33,14 @@ public interface UserService {
      * @return 公开用户信息
      */
     UserVO getUserPublicInfo(Long userId);
+
+    /**
+     * 批量获取用户公开信息（供其他微服务内部调用）
+     *
+     * @param userIds 用户ID列表
+     * @return 用户公开信息列表
+     */
+    List<UserVO> getUsersByIds(List<Long> userIds);
 
     /**
      * 更新用户个人信息（昵称、简介）

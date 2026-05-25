@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "评论管理", description = "文章评论发布、删除、查询等接口")
 @RestController
-@RequestMapping("/api/comment")
+@RequestMapping("/comment")
 public class CommentController {
 
     @Resource
@@ -37,14 +37,14 @@ public class CommentController {
     public ResultVO<Void> deleteComment(
             @Parameter(description = "用户ID", required = true, hidden = true)
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         commentService.deleteComment(id, userId);
         return ResultVO.success("评论已删除");
     }
 
     @Operation(summary = "文章评论列表", description = "获取指定文章的所有评论（含嵌套回复）")
     @GetMapping("/article/{articleId}")
-    public ResultVO<Object> getArticleComments(@PathVariable Long articleId) {
+    public ResultVO<Object> getArticleComments(@PathVariable("articleId") Long articleId) {
         return ResultVO.success(commentService.getArticleComments(articleId));
     }
 

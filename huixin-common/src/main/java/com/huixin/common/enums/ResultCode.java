@@ -33,7 +33,7 @@ public enum ResultCode {
     USERNAME_EXIST(4001, "用户名已存在"),
     EMAIL_EXIST(4002, "邮箱已被注册"),
     USER_NOT_FOUND(4003, "用户不存在"),
-    PASSWORD_ERROR(4004, "密码错误"),
+    PASSWORD_ERROR(4004, "旧密码错误，请检查无误后再试"),
     ACCOUNT_DISABLED(4005, "账号已被禁用"),
     TOKEN_EXPIRED(4006, "登录已过期，请重新登录"),
     TOKEN_INVALID(4007, "无效的Token"),

@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author 爱吃罗氏虾
  */
-@FeignClient(name = "huixin-article", path = "/api/article")
+@FeignClient(name = "huixin-article", path = "/article")
 public interface ArticleFeignClient {
 
     @GetMapping("/list")
