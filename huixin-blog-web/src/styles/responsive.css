@@ -1,0 +1,33 @@
+/* --- 移动端特定的防挤压与安全边距修补 --- */
+
+@media (max-width: 767.98px) {
+  /* 1. CommentSection：防止多级嵌套评论把左边完全缩进挤光从而把文字挤爆 */
+  .reply-list {
+    margin-left: 0.75rem !important;
+    padding-left: 0.5rem !important;
+    border-left: 2px solid var(--huixin-border);
+  }
+  
+  .comment-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .comment-body {
+    margin-left: 10px !important;
+  }
+
+  /* 2. 避免 Navbar 下拉时的搜索框宽度占据全屏后按钮被顶出可视区外 */
+  .nav-search {
+    flex-wrap: nowrap !important;
+  }
+  
+  .nav-search input {
+    width: 100% !important;
+  }
+  
+  /* 3. 为移动端底部的留白（Feed防挡）加上一定的 padding，避免被浮动的 Safari 底栏遮挡 */
+  body {
+    padding-bottom: 4rem;
+  }
+}

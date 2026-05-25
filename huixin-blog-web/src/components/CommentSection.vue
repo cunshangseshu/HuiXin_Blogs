@@ -39,7 +39,8 @@
           <div v-if="replyingTo === comment.id" class="reply-editor mt-2">
             <input v-model="replyContent" class="form-control form-control-sm" :placeholder="`回复 ${comment.username || '用户'}`" maxlength="500">
             <div class="d-flex justify-content-between align-items-center mt-1">
-              <small class="text-muted">{{ replyContent.length }}/500</small>
+<style scoped>
+@import "@/styles/responsive.css";
               <div>
                 <button class="btn btn-sm btn-outline-secondary me-1" @click="replyingTo = null">取消</button>
                 <button class="btn btn-sm btn-outline-primary" @click="submitReply(comment.id, comment.userId)" :disabled="!replyContent.trim() || submitting">发送</button>
